@@ -1,0 +1,14 @@
+#+title: Org Blog
+
+Hopefully the last time I overengineer my blog.
+
+- A static blog generator written in clojure
+- Pulls content primarily from an org(-roam) directory
+- Uses clerk to define and render the content
+  - Plus tools for visualizations, images, etc
+- Uses org-crud to parse (and crud) the org content
+  - Supports an interactive review process
+    - reading+writing to the org files
+    - adding additional tags
+    - linking notes
+- Depends on clawe (initially, anyway)
