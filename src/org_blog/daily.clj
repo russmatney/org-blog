@@ -8,58 +8,63 @@
    [org-crud.markdown :as org-crud.markdown]
    [nextjournal.clerk :as clerk]
    [tick.core :as t]
-   [org-blog.render :as render]))
+   [org-blog.render :as render]
+   [babashka.fs :as fs]))
 
 (defonce ^:dynamic day (t/today))
 
 (def this-ns *ns*)
+(declare todays-org-path)
 
 (defn export-for-day [{:keys [day]}]
-  (with-bindings {#'org-blog.daily/day day}
-    (render/path+ns-sym->spit-static-html
-      (str "public/daily/" day ".html")
-      (symbol (str this-ns)))))
+  (when day
+    (println "[EXPORT] exporting daily for: " day)
+    (with-bindings {#'org-blog.daily/day day}
+      (let [path (todays-org-path)]
+        (if (fs/exists? path)
+          (render/path+ns-sym->spit-static-html
+            (str "public/daily/" day ".html")
+            (symbol (str this-ns)))
+          (println "[WARN] no daily file for " day " at path " path))))))
 
 (comment
   (export-for-day {:day (t/today)})
   (export-for-day {:day (str (t/<< (t/today) (t/new-period 1 :days)))}))
 
+^{::clerk/no-cache true}
+(defn todays-org-path [] (garden/daily-path day))
 
 ^{::clerk/no-cache true}
 (def todays-org-item
-  (-> (garden/daily-path day)
+  (-> (todays-org-path)
       org-crud/path->nested-item))
 
-(def daily-items
-  (->> todays-org-item :org/items))
+(defn item-has-tags [item tags]
+  (-> item :org/tags (set/intersection tags) seq))
 
-(defn items-with-tags [tags]
-  (->> daily-items
-       (filter (comp seq :org/tags))
-       (filter (comp seq #(set/intersection tags %) :org/tags))))
+(defn items-with-tags [items tags]
+  (->> items (filter #(item-has-tags % tags))))
 
 (comment
   (->>
-    (items-with-tags #{"til"})
-    (mapcat org-crud.markdown/item->md-body))
-  (items-with-tags #{"bugstory"}))
+    (items-with-tags (:org/items todays-org-item) #{"til"})
+    (mapcat org-crud.markdown/item->md-body)))
 
 (defn content-with-tags
-  [{:keys [title tags]}]
-  (let [notes
-        (->>
-          (items-with-tags tags)
-          (mapcat (fn [item]
-                    (let [[title & body]
-                          (org-crud.markdown/item->md-body item)]
-                      (concat
-                        [title
-                         (->> (:org/tags item)
-                              (string/join ":")
-                              (#(str "tags: :" % ":")))
-                         ""]
-                        body))))
-          seq)]
+  [items {:keys [title tags]}]
+  (let [notes (->>
+                (items-with-tags items tags)
+                (mapcat (fn [item]
+                          (let [[title & body]
+                                (org-crud.markdown/item->md-body item)]
+                            (concat
+                              [title
+                               (->> (:org/tags item)
+                                    (string/join ":")
+                                    (#(str "tags: :" % ":")))
+                               ""]
+                              body))))
+                seq)]
     (when (seq notes)
       (concat
         [(str "## " title "\n")]
@@ -67,21 +72,25 @@
 
 (comment
   (content-with-tags
+    (:org/items todays-org-item)
     {:title "TIL" :tags #{"til"}}))
 
 (def tag-groups
-  [{:title "TIL" :tags #{"til"}}
+  [{:title       "TIL"
+    :description "Today I learned"
+    :tags        #{"til"}}
    {:title "Talks" :tags #{"talk"}}
    {:title "Stories" :tags #{"bugstory"}}
-   {:title "Hammocking" :tags #{"hammock"}}])
+   {:title       "Hammock" :tags #{"hammock"}
+    :description "Some things I'm turning over"}])
 
-(defn content-for-tag-groups []
+(defn content-for-tag-groups [items]
   (->> tag-groups
-       (mapcat content-with-tags)
+       (mapcat #(content-with-tags items %))
        (string/join "\n")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
 
 (clerk/md (str "# " (:org/name todays-org-item)))
-(clerk/md (content-for-tag-groups))
+(clerk/md (content-for-tag-groups (:org/items todays-org-item)))
