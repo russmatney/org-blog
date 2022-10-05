@@ -1,0 +1,7 @@
+{:paths ["src"]
+ :deps  {}
+ :tasks
+ {serve
+  {:doc "Serve /public on 9999 via babashka/http-server"
+   :task
+   (shell "http-server --port 9999 --dir public")}}}
