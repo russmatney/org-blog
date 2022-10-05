@@ -1,0 +1,11 @@
+{:paths ["src"]
+ :deps  {wing/wing           {:mvn/version "0.1.4"}
+         russmatney/org-crud {:local/root "../org-crud"}
+         russmatney/clawe    {:local/root "../clawe"}
+
+         ;; clerk
+         io.github.nextjournal/clerk {:sha     "963662d40b5d9d6dccf5c72895771b773fc7851a"
+                                      :git/url "https://github.com/nextjournal/clerk.git"
+                                      ;; :mvn/version "0.10.562"
+                                      }
+         }}
