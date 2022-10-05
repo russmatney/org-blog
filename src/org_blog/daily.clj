@@ -56,7 +56,8 @@
                         [title
                          (->> (:org/tags item)
                               (string/join ":")
-                              (#(str "tags: :" % ":")))]
+                              (#(str "tags: :" % ":")))
+                         ""]
                         body))))
           seq)]
     (when (seq notes)
@@ -70,6 +71,7 @@
 
 (def tag-groups
   [{:title "TIL" :tags #{"til"}}
+   {:title "Talks" :tags #{"talk"}}
    {:title "Stories" :tags #{"bugstory"}}
    {:title "Hammocking" :tags #{"hammock"}}])
 
