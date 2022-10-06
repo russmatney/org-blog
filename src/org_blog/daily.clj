@@ -13,14 +13,18 @@
 
 (defonce ^:dynamic day (t/today))
 
+(defonce ^:dynamic *id->link-uri* (fn [_] nil))
+
 (def this-ns *ns*)
 (def this-file *file*)
 (declare todays-org-path)
 
-(defn export-for-day [{:keys [day]}]
+(defn export-for-day [{:keys [day
+                              id->link-uri]}]
   (when day
     (println "[EXPORT] exporting daily for: " day)
-    (with-bindings {#'org-blog.daily/day day}
+    (with-bindings {#'org-blog.daily/day            day
+                    #'org-blog.daily/*id->link-uri* (or id->link-uri *id->link-uri*)}
       (let [path (todays-org-path)]
         (if (fs/exists? path)
           (render/path+ns-sym->spit-static-html
@@ -59,19 +63,21 @@
 
 (defn content-with-tags
   [items {:keys [title tags]}]
-  (let [notes (->>
-                (items-with-tags items tags)
-                (mapcat (fn [item]
-                          (let [[title & body]
-                                (org-crud.markdown/item->md-body item)]
-                            (concat
-                              [title
-                               (->> (:org/tags item)
-                                    (string/join ":")
-                                    (#(str "tags: :" % ":")))
-                               ""]
-                              body))))
-                seq)]
+  (let [notes
+        (->>
+          (items-with-tags items tags)
+          (mapcat (fn [item]
+                    (let [[title & body]
+                          (org-crud.markdown/item->md-body
+                            item {:id->link-uri *id->link-uri*})]
+                      (concat
+                        [title
+                         (->> (:org/tags item)
+                              (string/join ":")
+                              (#(str "tags: :" % ":")))
+                         ""]
+                        body))))
+          seq)]
     (when (seq notes)
       (concat
         [(str "## " title "\n")]
