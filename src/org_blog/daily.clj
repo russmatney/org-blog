@@ -32,9 +32,11 @@
             (symbol (str this-ns)))
           (println "[WARN] no daily file for " day " at path " path))))))
 
+^{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn reexport! []
   (export-for-day {:day day}))
 
+^{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn reload! []
   (clerk/show! this-file))
 
