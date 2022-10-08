@@ -9,11 +9,12 @@
    [nextjournal.clerk :as clerk]
    [tick.core :as t]
    [org-blog.render :as render]
-   [babashka.fs :as fs]))
+   [babashka.fs :as fs]
+   [org-blog.item :as item]))
 
 (defonce ^:dynamic day (t/today))
-
 (defonce ^:dynamic *id->link-uri* (fn [_] nil))
+(defonce ^:dynamic exporting? false)
 
 (def this-ns *ns*)
 (def this-file *file*)
@@ -23,8 +24,10 @@
                               id->link-uri]}]
   (when day
     (println "[EXPORT] exporting daily for: " day)
-    (with-bindings {#'org-blog.daily/day            day
-                    #'org-blog.daily/*id->link-uri* (or id->link-uri *id->link-uri*)}
+    (with-bindings
+      {#'org-blog.daily/day            day
+       #'org-blog.daily/exporting?     true
+       #'org-blog.daily/*id->link-uri* (or id->link-uri *id->link-uri*)}
       (let [path (todays-org-path)]
         (if (fs/exists? path)
           (render/path+ns-sym->spit-static-html
@@ -52,58 +55,10 @@
   (-> (todays-org-path)
       org-crud/path->nested-item))
 
-(defn item-has-tags [item tags]
-  (-> item :org/tags (set/intersection tags) seq))
-
-(defn items-with-tags [items tags]
-  (->> items (filter #(item-has-tags % tags))))
-
 (comment
   (->>
-    (items-with-tags (:org/items todays-org-item) #{"til"})
+    (item/items-with-tags (:org/items todays-org-item) #{"til"})
     (mapcat org-crud.markdown/item->md-body)))
-
-(defn content-with-tags
-  [items {:keys [title tags]}]
-  (let [notes
-        (->>
-          (items-with-tags items tags)
-          (mapcat (fn [item]
-                    (let [[title & body]
-                          (org-crud.markdown/item->md-body
-                            item {:id->link-uri *id->link-uri*})]
-                      (concat
-                        [title
-                         (->> (:org/tags item)
-                              (string/join ":")
-                              (#(str "tags: :" % ":")))
-                         ""]
-                        body))))
-          seq)]
-    (when (seq notes)
-      (concat
-        [(str "## " title "\n")]
-        notes))))
-
-(comment
-  (content-with-tags
-    (:org/items todays-org-item)
-    {:title "TIL" :tags #{"til"}}))
-
-(def tag-groups
-  [{:title       "TIL"
-    :description "Today I learned"
-    :tags        #{"til"}}
-   {:title "Talks" :tags #{"talk"}}
-   {:title "Stories" :tags #{"bugstory"}}
-   {:title       "Hammock" :tags #{"hammock"}
-    :description "Some things I'm turning over"}])
-
-(defn content-for-tag-groups [items]
-  (->> tag-groups
-       (mapcat #(content-with-tags items %))
-       (string/join "\n")))
-
 
 ;; TODO flag for filtering elems when printing to 'public'
 
@@ -113,7 +68,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
 
-^{::clerk/viewer
+^{#_#_ ;; wish i could do this:
+  ::clerk/visibility {:result (if exporting? :hide :show)}
+  ::clerk/viewer
   '(fn [last-load-time]
      (v/html [:div.text-center
               (when last-load-time
@@ -126,4 +83,16 @@
 (str @last-load-time)
 
 (clerk/md (str "# " (:org/name todays-org-item)))
-(clerk/md (content-for-tag-groups (:org/items todays-org-item)))
+(clerk/md (item/content-for-tag-groups
+            (:org/items todays-org-item)
+            [
+             {:title       "TIL"
+              :description "Today I learned"
+              :tags        #{"til"}}
+             {:title "Clojure" :tags #{"clojure"}}
+             {:title "Clerk" :tags #{"clerk"}}
+
+             {:title "Talks" :tags #{"talk"}}
+             {:title "Stories" :tags #{"bugstory"}}
+             {:title       "Hammock" :tags #{"hammock"}
+              :description "Some things I'm turning over"}]))
