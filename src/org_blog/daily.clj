@@ -14,7 +14,6 @@
 (defonce ^:dynamic *id->link-uri* (fn [_] nil))
 
 (def this-ns *ns*)
-(def this-file *file*)
 
 ^{::clerk/no-cache true}
 (defn todays-org-path [] (garden/daily-path day))
@@ -25,14 +24,17 @@
       org-crud/path->nested-item))
 
 (defn day->uri [d]
-  (str "public/daily/" d ".html"))
+  (str "daily/" d ".html"))
 
-(defn yesterday-uri []
-  (day->uri (t/<< day (t/new-period 1 :days))))
+;; TODO find previous/next _with content_
+(def previous-day (t/<< day (t/new-period 1 :days)))
+(def next-day (t/>> day (t/new-period 1 :days)))
 
-(defn tomorrow-uri []
-  (day->uri (t/>> day (t/new-period 1 :days))))
+(defn previous-uri [] (day->uri previous-day))
+(defn next-uri [] (day->uri next-day))
 
+;; we need to track what files are published, what dailies have content, etc
+;; TODO how to skip dailies with no content?
 (defn export-for-day [{:keys [day id->link-uri]}]
   (when day
     (println "[EXPORT] exporting daily for: " day)
@@ -43,16 +45,9 @@
             uri  (day->uri day)]
         (if (fs/exists? path)
           (render/path+ns-sym->spit-static-html
-            uri (symbol (str this-ns)))
+            (str "public/" uri)
+            (symbol (str this-ns)))
           (println "[WARN] no daily file for " day " at path " path))))))
-
-^{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defn reexport! []
-  (export-for-day {:day day}))
-
-^{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defn reload! []
-  (clerk/show! this-file))
 
 (comment
   (export-for-day {:day (t/today)})
@@ -86,8 +81,10 @@
 
 (clerk/html
   [:div
-   [:a {:href (str "/" (yesterday-uri))} "yesterday"]])
+   [:a {:href (str "/" (previous-uri))}
+    (str "<< " previous-day)]])
 
 (clerk/html
   [:div
-   [:a {:href (str "/" (tomorrow-uri))} "tomorrow"]])
+   [:a {:href (str "/" (next-uri))}
+    (str ">> " next-day)]])
