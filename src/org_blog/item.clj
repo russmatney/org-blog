@@ -4,7 +4,9 @@
    [org-crud.markdown :as org-crud.markdown]
    [clojure.string :as string]))
 
-(defn item-has-tags [item tags]
+(defn item-has-tags
+  "Returns truthy if the item has at least one matching tag."
+  [item tags]
   (-> item :org/tags (set/intersection tags) seq))
 
 (defn item-has-parent [item parent-names]
@@ -26,14 +28,20 @@
    (let [tags (:org/tags item)
          [title & body]
          (org-crud.markdown/item->md-body
-           item opts
-           #_{:id->link-uri *id->link-uri*})]
+           item opts)]
      (concat
        [title
         (when (seq tags)
-          (->> tags (string/join ":") (#(str "tags: :" % ":"))))
+          (->> tags
+               (map #(str ":" %))
+               (string/join "\t")
+               (#(str "### " %))))
         ""]
        body))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; content by 'tag groups'
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn content-with-tags
   [items {:keys [title tags parent-names]}]

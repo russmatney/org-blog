@@ -50,7 +50,6 @@
 (comment
   (export-dailies {:days-ago 7}))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
 
@@ -59,7 +58,9 @@
 ;; ### 'missing' links
 (clerk/table
   {::clerk/width :full}
-  (->>
-    @linked-items
-    seq
-    #_(map (fn [id] {:id id}))))
+  (or
+    (->>
+      @linked-items
+      seq
+      #_(map (fn [id] {:id id})))
+    [{:no-data nil}]))
