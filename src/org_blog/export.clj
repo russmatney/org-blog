@@ -2,7 +2,6 @@
   {:nextjournal.clerk/visibility {:code :hide :result :hide}}
   (:require
    [nextjournal.clerk :as clerk]
-   [clojure.string :as string]
    [clojure.set :as set]
    [org-crud.core :as org-crud]
    [dates.tick :as dates.tick]
@@ -24,7 +23,12 @@
 (defonce linked-items (atom #{}))
 
 (defn collect-linked-ids
-  "Assumes published-ids is already set correctly"
+  "Assumes published-ids and *days* are set.
+
+  For the dailies in *days* (or `:days`) AND the published notes in `published-ids`,
+  collects all :org/links-to :link/ids and backlinks.
+
+  Returns a set of uuids."
   ([] (collect-linked-ids nil))
   ([opts]
    (let [days                  (:days opts *days*)
@@ -32,14 +36,15 @@
          published-notes       (->> @published-ids (map db/fetch-with-id))
          published             (concat published-daily-items published-notes)
          all-items             (->> published (mapcat org-crud/nested-item->flattened-items))
-         all-links             (->> all-items (mapcat :org/links-to))]
-     all-links)))
+         all-link-ids          (->> all-items (mapcat :org/links-to) (map :link/id) (into #{}))
+         all-item-ids          (->> all-items (map :org/id) (remove nil?) (into #{}))
+         all-backlink-ids      (->> all-item-ids (mapcat db/ids-linked-from) (into #{}))]
+     (->> (concat all-backlink-ids all-link-ids) (into #{})))))
 
 (defn reset-linked-items
   "Resets the linked-items lists, which is made up of linked (i.e. published) and missing items."
   []
-  (let [linked-ids (->> (collect-linked-ids) (map :link/id) (into #{}))]
-    (reset! linked-items (->> linked-ids (map db/fetch-with-id)))))
+  (reset! linked-items (->> (collect-linked-ids) (map db/fetch-with-id))))
 
 (defn note->uri [item]
   ;; TODO dry up uri creation (maybe in config?)
@@ -98,9 +103,6 @@
           :next-day     next
           :id->link-uri id->link-uri})))))
 
-(comment
-  (publish-dailies))
-
 (defn publish-notes []
   (let [notes-to-publish (->> @published-ids (map db/fetch-with-id))]
     (doseq [note notes-to-publish]
@@ -109,17 +111,11 @@
          :id->link-uri id->link-uri}))))
 
 (comment
+  ;; These depend on published-ids being set
+  (publish-dailies)
   (publish-notes))
 
 (reset-linked-items)
-
-(comment
-  (def proc-gen-item
-    (->>
-      @linked-items
-      (filter (comp #(string/includes? % "proc") :org/name))
-      first))
-  (swap! published-ids conj (:org/id proc-gen-item)))
 
 (defn publish! [note-id]
   (notify/notify "publishing note" note-id)

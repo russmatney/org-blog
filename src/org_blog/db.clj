@@ -5,7 +5,6 @@
    [garden.core :as garden]
    [org-crud.core :as org-crud]))
 
-(println "parsing all notes")
 (def all-notes
   (garden/all-garden-notes-nested))
 
@@ -41,3 +40,41 @@
 (comment
   (count all-notes)
   (count notes-by-id))
+
+(def root-ids-by-link-id
+  (->>
+    all-notes
+    (mapcat org-crud/nested-item->flattened-items)
+    (reduce
+      (fn [agg item]
+        (if (:org/id item)
+          (let [link-ids (->> item :org/links-to (map :link/id))]
+            (reduce (fn [agg link-id]
+                      (if (get agg link-id)
+                        (update agg link-id conj (:org/id item))
+                        (assoc agg link-id #{(:org/id item)})))
+                    agg
+                    link-ids))
+          agg))
+      {})))
+
+(defn ids-linked-from
+  "Returns a list of items that link to the passed id."
+  [id]
+  (root-ids-by-link-id id))
+
+(defn notes-linked-from
+  "Returns a list of items that link to the passed id."
+  [id]
+  (->> (ids-linked-from id)
+       (map fetch-with-id)))
+
+(comment
+  (fetch-with-id #uuid "8b22b22a-c442-4859-9927-641f8405ec8d")
+  (notes-linked-from #uuid "8b22b22a-c442-4859-9927-641f8405ec8d")
+
+  (reduce (fn [agg next]
+            (println "agg" agg)
+            (+ agg next))
+          0
+          [1 3 5]))
