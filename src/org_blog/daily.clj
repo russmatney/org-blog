@@ -61,7 +61,7 @@
    (->>
      (items-for-day day opts)
      (mapcat #(item/item->md-content
-                % {:id->link-uri *id->link-uri*}))
+                % (merge {:id->link-uri *id->link-uri*} opts)))
      (string/join "\n"))))
 
 (comment

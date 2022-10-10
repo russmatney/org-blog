@@ -27,8 +27,7 @@
   ([item opts]
    (let [tags (:org/tags item)
          [title & body]
-         (org-crud.markdown/item->md-body
-           item opts)]
+         (org-crud.markdown/item->md-body item opts)]
      (concat
        [title
         (when (seq tags)
