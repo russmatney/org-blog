@@ -43,8 +43,8 @@
         (with-bindings
           {#'org-blog.daily/*day*          (or day *day*)
            #'org-blog.daily/*id->link-uri* (or id->link-uri *id->link-uri*)
-           #'org-blog.daily/*previous-day* (or previous-day *previous-day*)
-           #'org-blog.daily/*next-day*     (or next-day *next-day*)
+           #'org-blog.daily/*previous-day* previous-day
+           #'org-blog.daily/*next-day*     next-day
            #'org-blog.daily/*allowed-tags* (or allowed-tags *allowed-tags*)}
           (render/path+ns-sym->spit-static-html
             (str "public/" (day->uri day))
@@ -84,6 +84,7 @@
   we use the `*id->link-uri*` dynamic binding to determine if the
   link shoudl be created. In this case, we filter out unpublished
   backlinks completely."
+  ;; TODO DRY up vs note.clj
   [id]
   (->> id
        db/notes-linked-from
@@ -92,7 +93,8 @@
                  (let [link-name (:org/parent-name item (:org/name item))]
                    (concat
                      [(str "### [" link-name "](" (-> item :org/id *id->link-uri*) ")")]
-                     (org-crud.markdown/item->md-body item)))))))
+                     (org-crud.markdown/item->md-body item
+                                                      {:id->link-uri *id->link-uri*})))))))
 
 (defn backlinks [id]
   (let [blink-lines (backlink-list id)]

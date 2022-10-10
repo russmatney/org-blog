@@ -78,7 +78,8 @@
                  (let [link-name (:org/parent-name item (:org/name item))]
                    (concat
                      [(str "### [" link-name "](" (-> item :org/id *id->link-uri*) ")")]
-                     (org-crud.markdown/item->md-body item)))))))
+                     (org-crud.markdown/item->md-body item
+                                                      {:id->link-uri *id->link-uri*})))))))
 
 (defn backlinks [id]
   (let [blink-lines (backlink-list id)]

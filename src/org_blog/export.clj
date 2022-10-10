@@ -13,7 +13,8 @@
    [ralphie.notify :as notify]
    [clojure.string :as string]
    [org-blog.index :as index]
-   [garden.core :as garden]))
+   [garden.core :as garden]
+   [babashka.fs :as fs]))
 
 
 (def ^:dynamic
@@ -24,6 +25,19 @@
 (defonce published-ids (atom #{}))
 (comment (reset! published-ids #{}))
 (defonce linked-items (atom #{}))
+
+(defn days->ids
+  ([] (days->ids *days*))
+  ([days]
+   (->> days
+        (map garden/daily-path)
+        (filter fs/exists?)
+        (map org-crud/path->nested-item)
+        (map :org/id)
+        (remove nil?)
+        (into #{}))))
+
+(comment (days->ids))
 
 (defn collect-linked-ids
   "Assumes published-ids and *days* are set.
@@ -62,15 +76,18 @@
   Useful for associating daily files so that prev/next daily links
   jump to the next day with content, skipping empty days."
   [days]
-  (let [first-group [nil (first days) (second days)]
+  (let [days         (->> days (filter daily/items-for-day))
+        first-group  [nil (first days) (second days)]
+        second-group [(first days) (second days) (nth days 2)]
         groups
         (->>
           days
-          (filter daily/items-for-day)
           (partition-all 3 1)
           (drop-last)
           (map #(into [] %)))]
-    (->> (concat [first-group] groups)
+    (->> (concat [first-group
+                  second-group]
+                 groups)
          (map (fn [[prev day & next]]
                 (cond->
                     {:day day}
@@ -92,7 +109,8 @@
     (if-not item
       (println "[WARN: bad data]: could not find org item with id:" id)
       (let [linked-id (:org/id item)]
-        (if (@published-ids linked-id)
+        (if (or (@published-ids linked-id)
+                ((days->ids) linked-id))
           ;; TODO handle uris more explicitly (less '(str "/" blah)' everywhere)
           (str "/" (item->uri item))
 
@@ -125,10 +143,7 @@
   ([opts]
    (index/export-index
      {:id->link-uri id->link-uri
-      :day-ids      (->> (:days opts *days*)
-                         (map garden/daily-path)
-                         (map :org/id)
-                         (remove nil?))
+      :day-ids      (days->ids (:days opts *days*))
       :note-ids     @published-ids})))
 
 (defn publish-all
@@ -144,8 +159,7 @@
   (publish-notes)
   (publish-index)
 
-  (publish-all)
-  )
+  (publish-all))
 
 (reset-linked-items)
 

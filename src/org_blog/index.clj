@@ -51,7 +51,9 @@
       (symbol (str this-ns)))))
 
 (defn daily-index
-  "TODO: someday, display as weekly/calendar view."
+  "TODO: someday, display as weekly/calendar view.
+  TODO gather tags from children
+  "
   []
   (let [dailies (->> *day-ids* (map db/fetch-with-id) (sort-by :org/name) reverse)]
     (when dailies
