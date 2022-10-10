@@ -45,29 +45,34 @@
 (defn previous-uri [] (day->uri *previous-day*))
 (defn next-uri [] (day->uri *next-day*))
 
-(defn items->content [items opts]
-  (let [tags (:tags opts #{})]
-    (->>
-      items
-      (filter #(item/item-has-tags % tags))
-      (mapcat #(item/item->md-content
-                 % {:id->link-uri *id->link-uri*}))
-      (string/join "\n"))))
+(defn items-for-day
+  ([day] (items-for-day day nil))
+  ([day opts]
+   (when (-> day garden/daily-path fs/exists?)
+     (some->> day
+              garden/daily-path org-crud/path->nested-item
+              :org/items
+              (filter #(item/item-has-tags % (:tags opts *allowed-tags*)))
+              seq))))
+
+(defn daily->content
+  ([day] (daily->content day nil))
+  ([day opts]
+   (->>
+     (items-for-day day opts)
+     (mapcat #(item/item->md-content
+                % {:id->link-uri *id->link-uri*}))
+     (string/join "\n"))))
 
 (comment
-  (items->content
-    (:org/items todays-org-item)
-    {:tags *allowed-tags*}))
+  (daily->content *day*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
 
 
 (clerk/md (str "# " (:org/name todays-org-item)))
-(clerk/md
-  (items->content
-    (:org/items todays-org-item)
-    {:tags *allowed-tags*}))
+(clerk/md (daily->content *day*))
 
 (clerk/html
   [:div
