@@ -11,13 +11,15 @@
    [org-blog.note :as note]
    [org-blog.db :as db]
    [ralphie.notify :as notify]
-   [clojure.string :as string]))
+   [clojure.string :as string]
+   [org-blog.index :as index]
+   [garden.core :as garden]))
 
 
-(defonce ^:dynamic
+(def ^:dynamic
   ;; TODO improve how days are collected (maybe an 'earliest-date' makes sense)
-  *days-ago* 7)
-(defonce ^:dynamic *days* (dates.tick/days *days-ago*))
+  *days-ago* 14)
+(def ^:dynamic *days* (dates.tick/days *days-ago*))
 
 (defonce published-ids (atom #{}))
 (comment (reset! published-ids #{}))
@@ -109,17 +111,41 @@
           :next-day     next
           :id->link-uri id->link-uri})))))
 
-(defn publish-notes []
-  (let [notes-to-publish (->> @published-ids (map db/fetch-with-id))]
-    (doseq [note notes-to-publish]
-      (note/export-note
-        {:path         (:org/source-file note)
-         :id->link-uri id->link-uri}))))
+(defn publish-notes
+  ([] (publish-notes nil))
+  ([_]
+   (let [notes-to-publish (->> @published-ids (map db/fetch-with-id))]
+     (doseq [note notes-to-publish]
+       (note/export-note
+         {:path         (:org/source-file note)
+          :id->link-uri id->link-uri})))))
+
+(defn publish-index
+  ([] (publish-index nil))
+  ([opts]
+   (index/export-index
+     {:id->link-uri id->link-uri
+      :day-ids      (->> (:days opts *days*)
+                         (map garden/daily-path)
+                         (map :org/id)
+                         (remove nil?))
+      :note-ids     @published-ids})))
+
+(defn publish-all
+  ([] (publish-all nil))
+  ([opts]
+   (publish-dailies opts)
+   (publish-notes opts)
+   (publish-index opts)))
 
 (comment
   ;; These depend on published-ids being set
   (publish-dailies)
-  (publish-notes))
+  (publish-notes)
+  (publish-index)
+
+  (publish-all)
+  )
 
 (reset-linked-items)
 

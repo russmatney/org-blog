@@ -21,6 +21,12 @@
 (defn items-with-parent [items parent-names]
   (->> items (filter #(item-has-parent % parent-names))))
 
+(defn item->tag-line
+  [item]
+  (let [tags (:org/tags item)]
+    (when (seq tags)
+      (->> tags (map #(str ":" %)) (string/join "\t")))))
+
 (defn item->title-content
   ([item] (item->title-content item nil))
   ([item opts]
@@ -30,16 +36,13 @@
   "Returns a seq of strings"
   ([item] (item->md-content item nil))
   ([item opts]
-   (let [tags (:org/tags item)
+   (let [
          [title & body]
          (org-crud.markdown/item->md-body item opts)]
      (concat
        [title
-        (when (seq tags)
-          (->> tags
-               (map #(str ":" %))
-               (string/join "\t")
-               (#(str "### " %))))
+        (when-let [tag-line (item->tag-line item)]
+          (str "### " tag-line))
         ""]
        body))))
 
