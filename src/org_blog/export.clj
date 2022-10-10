@@ -10,7 +10,8 @@
    [org-blog.daily :as daily]
    [org-blog.note :as note]
    [org-blog.db :as db]
-   [ralphie.notify :as notify]))
+   [ralphie.notify :as notify]
+   [clojure.string :as string]))
 
 
 (defonce ^:dynamic
@@ -46,9 +47,12 @@
   []
   (reset! linked-items (->> (collect-linked-ids) (map db/fetch-with-id))))
 
-(defn note->uri [item]
+(defn item->uri [item]
   ;; TODO dry up uri creation (maybe in config?)
-  (-> item :org/source-file note/->uri))
+  (let [path (-> item :org/source-file)]
+    (if (string/includes? path "/daily/")
+      (daily/path->uri path)
+      (note/path->uri path))))
 
 (defn days-with-prev+next
   "Builds a list of `{:prev <date> :day <date> :next <date>}` day groups.
@@ -80,13 +84,15 @@
     (filter (comp #(> % 1) count))))
 
 (defn id->link-uri [id]
+  ;; TODO move to db/config so that daily/note can consume it?
+  ;; it'll need to be passed/depend on published-ids somehow
   (let [item (db/fetch-with-id id)]
     (if-not item
       (println "[WARN: bad data]: could not find org item with id:" id)
       (let [linked-id (:org/id item)]
         (if (@published-ids linked-id)
-          ;; TODO to prefix or not to prefix - used as fs path or as href?
-          (str "/" (note->uri item))
+          ;; TODO handle uris more explicitly (less '(str "/" blah)' everywhere)
+          (str "/" (item->uri item))
 
           ;; returning nil here to signal the link's removal
           (println "[INFO: missing link]: removing link to unpublished note: "

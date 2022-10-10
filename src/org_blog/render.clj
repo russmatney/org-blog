@@ -26,8 +26,7 @@
   (-> 'org-blog.daily
       clerk-analyzer/ns->path
       (str ".clj")
-      io/resource)
-  )
+      io/resource))
 
 (defn ->html [{:keys [conn-ws?] :or {conn-ws? true}} state]
   (hiccup/html5

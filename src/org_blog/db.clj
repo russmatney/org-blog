@@ -8,6 +8,14 @@
 (def all-notes
   (garden/all-garden-notes-nested))
 
+(def all-flattened-notes-by-id
+  (->> all-notes
+       (mapcat org-crud/nested-item->flattened-items)
+       (filter :org/id)
+       (map (fn [item]
+              [(:org/id item) item]))
+       (into {})))
+
 (def notes-by-id
   (->>
     all-notes
@@ -67,14 +75,12 @@
   "Returns a list of items that link to the passed id."
   [id]
   (->> (ids-linked-from id)
-       (map fetch-with-id)))
+       (map
+         ;; linking to child items? or roots only?
+         all-flattened-notes-by-id
+         #_fetch-with-id)))
+
 
 (comment
   (fetch-with-id #uuid "8b22b22a-c442-4859-9927-641f8405ec8d")
-  (notes-linked-from #uuid "8b22b22a-c442-4859-9927-641f8405ec8d")
-
-  (reduce (fn [agg next]
-            (println "agg" agg)
-            (+ agg next))
-          0
-          [1 3 5]))
+  (notes-linked-from #uuid "8b22b22a-c442-4859-9927-641f8405ec8d"))

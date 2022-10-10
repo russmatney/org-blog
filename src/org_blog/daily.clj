@@ -9,7 +9,9 @@
    [org-blog.render :as render]
    [babashka.fs :as fs]
    [org-blog.item :as item]
-   [org-blog.config :as config]))
+   [org-blog.config :as config]
+   [org-blog.db :as db]
+   [org-crud.markdown :as org-crud.markdown]))
 
 (def ^:dynamic *day* (t/today))
 (def ^:dynamic *id->link-uri* (fn [_] nil))
@@ -18,6 +20,16 @@
 (def ^:dynamic *next-day* (t/>> *day* (t/new-period 1 :days)))
 
 (defn day->uri [d] (str "daily/" d ".html"))
+(defn path->uri [path]
+  (str (fs/file-name (fs/parent path))
+       "/"
+       (fs/strip-ext
+         (fs/file-name path))
+       ".html"))
+(comment
+  (day->uri *day*)
+  (path->uri
+    (garden/daily-path *day*)))
 
 (def this-ns *ns*)
 
@@ -67,6 +79,28 @@
 (comment
   (daily->content *day*))
 
+(defn backlink-list
+  "Backlinks follow a similar pattern to forward-link creation -
+  we use the `*id->link-uri*` dynamic binding to determine if the
+  link shoudl be created. In this case, we filter out unpublished
+  backlinks completely."
+  [id]
+  (->> id
+       db/notes-linked-from
+       (filter (comp *id->link-uri* :org/id)) ;; filter if not 'published'
+       (mapcat (fn [item]
+                 (let [link-name (:org/parent-name item (:org/name item))]
+                   (concat
+                     [(str "### [" link-name "](" (-> item :org/id *id->link-uri*) ")")]
+                     (org-crud.markdown/item->md-body item)))))))
+
+(defn backlinks [id]
+  (let [blink-lines (backlink-list id)]
+    (when (seq blink-lines)
+      (concat
+        ["---" "" "# Backlinks" ""]
+        blink-lines))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
 
@@ -85,3 +119,6 @@
    (when *next-day*
      [:a {:href (str "/" (next-uri))}
       (str ">> " *next-day*)])])
+
+^{::clerk/no-cache true}
+(clerk/md (->> (backlinks (:org/id todays-org-item)) (string/join "\n")))

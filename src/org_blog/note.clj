@@ -2,23 +2,35 @@
   {:nextjournal.clerk/visibility {:code :hide :result :hide}}
   (:require
    [clojure.string :as string]
+   [nextjournal.clerk :as clerk]
+   [babashka.fs :as fs]
+
    [garden.core :as garden]
    [org-crud.core :as org-crud]
-   [nextjournal.clerk :as clerk]
    [org-blog.render :as render]
-   [babashka.fs :as fs]
    [org-blog.item :as item]
-   [org-blog.config :as config]))
+   [org-blog.config :as config]
+   [org-blog.db :as db]
+   [org-crud.markdown :as org-crud.markdown]))
 
-(def ^:dynamic *path* (first (garden/flat-garden-paths)))
-(def ^:dynamic *id->link-uri* (fn [_] nil))
+(def ^:dynamic *path*
+  (->> (garden/flat-garden-paths)
+       (filter (comp #(string/includes? % "async_mario")))
+       first))
+
+(def ^:dynamic *id->link-uri*
+  (fn [_]
+    ;; NOTE do not publish with this val
+    ;; this just helps dev on the notes page by including backlinks
+    "some-link"))
+
 (def ^:dynamic *allowed-tags* config/allowed-tags)
 
-(defn ->uri [path]
+(defn path->uri [path]
   (-> path fs/file-name fs/strip-ext (#(str "note/" % ".html"))))
 
 (comment
-  (->uri *path*))
+  (path->uri *path*))
 
 (def this-ns *ns*)
 
@@ -31,7 +43,7 @@
        #'org-blog.note/*id->link-uri* (or id->link-uri *id->link-uri*)
        #'org-blog.note/*allowed-tags* (or allowed-tags *allowed-tags*)}
       (render/path+ns-sym->spit-static-html
-        (str "public/" (->uri path))
+        (str "public/" (path->uri path))
         (symbol (str this-ns))))))
 
 ^{::clerk/no-cache true}
@@ -53,6 +65,28 @@
     {:id->link-uri *id->link-uri*})
   (path->content *path*))
 
+(defn backlink-list
+  "Backlinks follow a similar pattern to forward-link creation -
+  we use the `*id->link-uri*` dynamic binding to determine if the
+  link shoudl be created. In this case, we filter out unpublished
+  backlinks completely."
+  [id]
+  (->> id
+       db/notes-linked-from
+       (filter (comp *id->link-uri* :org/id)) ;; filter if not 'published'
+       (mapcat (fn [item]
+                 (let [link-name (:org/parent-name item (:org/name item))]
+                   (concat
+                     [(str "### [" link-name "](" (-> item :org/id *id->link-uri*) ")")]
+                     (org-crud.markdown/item->md-body item)))))))
+
+(defn backlinks [id]
+  (let [blink-lines (backlink-list id)]
+    (when (seq blink-lines)
+      (concat
+        ["---" "" "# Backlinks" ""]
+        blink-lines))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
 
@@ -60,4 +94,8 @@
 (clerk/md (str "# " (:org/name note)))
 (clerk/md (path->content *path*))
 
-;; TODO backlinks
+;; # Backlinks
+^{::clerk/no-cache true}
+(clerk/md (->> (backlinks
+                 (-> *path* org-crud/path->nested-item :org/id))
+               (string/join "\n")))
