@@ -110,6 +110,9 @@
 (clerk/md (str "# " (:org/name todays-org-item)))
 (clerk/md (daily->content *day*))
 
+^{::clerk/no-cache true}
+(clerk/md (->> (backlinks (:org/id todays-org-item)) (string/join "\n")))
+
 (clerk/html
   [:div
    (when *previous-day*
@@ -122,5 +125,5 @@
      [:a {:href (str "/" (next-uri))}
       (str ">> " *next-day*)])])
 
-^{::clerk/no-cache true}
-(clerk/md (->> (backlinks (:org/id todays-org-item)) (string/join "\n")))
+(clerk/html
+  [:div [:a {:href "/index.html"} (str "^^ index")]])

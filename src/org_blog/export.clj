@@ -37,6 +37,8 @@
         (remove nil?)
         (into #{}))))
 
+(def day-ids (days->ids))
+
 (comment (days->ids))
 
 (defn collect-linked-ids
@@ -102,6 +104,9 @@
     (partition-all 3 1)
     (filter (comp #(> % 1) count))))
 
+(defn id-published? [id]
+  (or (@published-ids id) (day-ids id)))
+
 (defn id->link-uri [id]
   ;; TODO move to db/config so that daily/note can consume it?
   ;; it'll need to be passed/depend on published-ids somehow
@@ -109,8 +114,7 @@
     (if-not item
       (println "[WARN: bad data]: could not find org item with id:" id)
       (let [linked-id (:org/id item)]
-        (if (or (@published-ids linked-id)
-                ((days->ids) linked-id))
+        (if (id-published? id)
           ;; TODO handle uris more explicitly (less '(str "/" blah)' everywhere)
           (str "/" (item->uri item))
 
@@ -143,7 +147,7 @@
   ([opts]
    (index/export-index
      {:id->link-uri id->link-uri
-      :day-ids      (days->ids (:days opts *days*))
+      :day-ids      day-ids
       :note-ids     @published-ids})))
 
 (defn publish-all
@@ -163,6 +167,10 @@
 
 (reset-linked-items)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+#_ actions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn publish! [note-id]
   (notify/notify "publishing note" note-id)
   (swap! published-ids conj (util/ensure-uuid note-id)))
@@ -171,6 +179,22 @@
   (notify/notify "unpublishing note" note-id)
   (swap! published-ids disj (util/ensure-uuid note-id)))
 
+(defn open-in-emacs! [note-id]
+  (notify/notify "open in emacs!" "not impled")
+  nil
+  )
+
+
+(defn select-org-keys [item]
+  (select-keys item
+               [:org/name
+                ;; :org/short-path
+                :org/tags
+                ;; :org/links-to
+                :org/level
+                ;; :org/id
+                :org/body-string
+                ]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
@@ -218,7 +242,7 @@
                                         ~(-> note :org/id :nextjournal/value :value))))}
                 (str "unpublish: " (:org/name note))])]])]))}}
 (->> @linked-items
-     (map (fn [item] (assoc item :published (@published-ids (:org/id item)))))
+     (map (fn [item] (assoc item :published (id-published? (:org/id item)))))
      (sort-by :published)
      (into []))
 
@@ -228,20 +252,27 @@
 (clerk/table
   {::clerk/width :full}
   (or
-    (->> @published-ids (map db/fetch-with-id) seq)
+    (->> @published-ids (map db/fetch-with-id)
+         (map select-org-keys)
+         seq)
     [{:no-data nil}]))
 
 ;; ### missing items
 (clerk/table
   {::clerk/width :full}
   (or
-    (->> @linked-items (map :org/id) (into #{}) (#(set/difference % @published-ids))
-         (map db/fetch-with-id) seq)
+    (->> @linked-items (map :org/id) (into #{})
+         (#(set/difference % (->> (concat @published-ids day-ids) (into #{}))))
+         (map db/fetch-with-id)
+         (map select-org-keys)
+         seq)
     [{:no-data nil}]))
 
 ;; ### all linked items
 (clerk/table
   {::clerk/width :full}
   (or
-    (->> @linked-items seq)
+    (->> @linked-items
+         (map select-org-keys)
+         seq)
     [{:no-data nil}]))

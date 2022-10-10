@@ -99,3 +99,6 @@
 (clerk/md (->> (backlinks
                  (-> *path* org-crud/path->nested-item :org/id))
                (string/join "\n")))
+
+(clerk/html
+  [:div [:a {:href "/index.html"} (str "^^ index")]])
