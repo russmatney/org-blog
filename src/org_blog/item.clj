@@ -21,6 +21,11 @@
 (defn items-with-parent [items parent-names]
   (->> items (filter #(item-has-parent % parent-names))))
 
+(defn item->title-content
+  ([item] (item->title-content item nil))
+  ([item opts]
+   (some->> (org-crud.markdown/item->md-body item opts) first)))
+
 (defn item->md-content
   "Returns a seq of strings"
   ([item] (item->md-content item nil))

@@ -94,7 +94,6 @@
 (clerk/md (str "# " (:org/name note)))
 (clerk/md (path->content *path*))
 
-;; # Backlinks
 ^{::clerk/no-cache true}
 (clerk/md (->> (backlinks
                  (-> *path* org-crud/path->nested-item :org/id))
