@@ -42,9 +42,7 @@
   (->>
     [(t/today)]
     (filter daily/items-for-day)
-    (map :org/id)
-    )
-  )
+    (map :org/id)))
 
 (defn collect-linked-ids
   "Assumes published-ids and *days* are set.
@@ -149,7 +147,7 @@
 
 (defn publish-index
   ([] (publish-index nil))
-  ([opts]
+  ([_opts]
    (index/export-index
      {:id->link-uri id->link-uri
       :day-ids      day-ids
@@ -186,8 +184,7 @@
 
 (defn open-in-emacs! [note-id]
   (notify/notify "open in emacs!" "not impled")
-  nil
-  )
+  nil)
 
 
 (defn select-org-keys [item]
