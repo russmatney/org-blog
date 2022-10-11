@@ -13,8 +13,8 @@
    [ralphie.notify :as notify]
    [clojure.string :as string]
    [org-blog.index :as index]
-   [garden.core :as garden]
-   [babashka.fs :as fs]))
+   [tick.core :as t]
+   [garden.core :as garden]))
 
 
 (def ^:dynamic
@@ -30,16 +30,21 @@
   ([] (days->ids *days*))
   ([days]
    (->> days
-        (map garden/daily-path)
-        (filter fs/exists?)
-        (map org-crud/path->nested-item)
-        (map :org/id)
+        (filter daily/items-for-day)
+        (map (comp :org/id org-crud/path->nested-item garden/daily-path))
         (remove nil?)
         (into #{}))))
 
 (def day-ids (days->ids))
 
-(comment (days->ids))
+(comment
+  (days->ids)
+  (->>
+    [(t/today)]
+    (filter daily/items-for-day)
+    (map :org/id)
+    )
+  )
 
 (defn collect-linked-ids
   "Assumes published-ids and *days* are set.
