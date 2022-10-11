@@ -9,7 +9,10 @@
    [org-crud.core :as org-crud]
    [org-blog.render :as render]
    [org-blog.item :as item]
-   [org-blog.db :as db]))
+   [org-blog.db :as db]
+   [tick.core :as t]
+   [dates.tick :as dates]
+   ))
 
 (def ^:dynamic *day-ids* (->> (garden/daily-paths 14)
                               (filter fs/exists?)
@@ -63,7 +66,9 @@
              (mapcat (fn [daily]
                        [(str "- [" (:org/name daily) "]("
                              (*id->link-uri* (:org/id daily)) ")")
-                        (item/item->tag-line daily)])))))))
+                        (item/item->tag-line
+                          {:include-child-tags true}
+                          daily)])))))))
 
 (defn note-index
   "TODO: someday, display as a graph
@@ -77,7 +82,16 @@
              (mapcat (fn [note]
                        [(str "- [" (:org/name note) "]("
                              (*id->link-uri* (:org/id note)) ")")
-                        (item/item->tag-line note)])))))))
+                        (item/item->tag-line
+                          {:include-child-tags true}
+                          note)
+                        ""
+                        (when-let [created (:org.prop/created-at note)]
+                          (when-let [parsed (dates/parse-time-string created)]
+                            (str "created: " (t/format (t/formatter "MMMM dd") parsed))))
+                        (when-let [modified (:file/last-modified note)]
+                          (when-let [parsed (dates/parse-time-string modified)]
+                            (str "modified: " (t/format (t/formatter "MMMM dd") parsed))))])))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}

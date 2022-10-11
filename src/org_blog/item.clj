@@ -2,7 +2,8 @@
   (:require
    [clojure.set :as set]
    [org-crud.markdown :as org-crud.markdown]
-   [clojure.string :as string]))
+   [clojure.string :as string]
+   [org-crud.core :as org-crud]))
 
 (defn item-has-tags
   "Returns truthy if the item has at least one matching tag."
@@ -22,10 +23,15 @@
   (->> items (filter #(item-has-parent % parent-names))))
 
 (defn item->tag-line
-  [item]
-  (let [tags (:org/tags item)]
-    (when (seq tags)
-      (->> tags (map #(str ":" %)) (string/join "\t")))))
+  ([item] (item->tag-line nil item))
+  ([opts item]
+   (let [tags
+         (if (:include-child-tags opts)
+           (->> item org-crud/nested-item->flattened-items
+                (mapcat :org/tags) (into #{}))
+           (:org/tags item))]
+     (when (seq tags)
+       (->> tags (map #(str ":" %)) (string/join "\t"))))))
 
 (defn item->title-content
   ([item] (item->title-content item nil))
