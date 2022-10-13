@@ -58,7 +58,7 @@
 (defn publish-notes []
   (let [notes-to-publish (publish/published-notes)]
     (doseq [note notes-to-publish]
-      (if (comp #(string/includes? % "/daily/") :org/source-file)
+      (if (-> note :org/source-file (string/includes? "/daily/"))
         (daily/export {:note note})
         (note/export {:note note})))))
 
@@ -69,6 +69,7 @@
   []
   (publish-notes)
   (publish-index))
+
 
 (comment
   (publish-notes)
