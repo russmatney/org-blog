@@ -19,17 +19,11 @@
 (def ^:dynamic *previous-day* (t/<< *day* (t/new-period 1 :days)))
 (def ^:dynamic *next-day* (t/>> *day* (t/new-period 1 :days)))
 
+;; TODO dry up (if this survives the refactor)
 (defn day->uri [d] (str "daily/" d ".html"))
-(defn path->uri [path]
-  (str (fs/file-name (fs/parent path))
-       "/"
-       (fs/strip-ext
-         (fs/file-name path))
-       ".html"))
+
 (comment
-  (day->uri *day*)
-  (path->uri
-    (garden/daily-path *day*)))
+  (day->uri *day*))
 
 (def this-ns *ns*)
 

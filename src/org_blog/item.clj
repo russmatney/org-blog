@@ -3,7 +3,8 @@
    [clojure.set :as set]
    [org-crud.markdown :as org-crud.markdown]
    [clojure.string :as string]
-   [org-crud.core :as org-crud]))
+   [org-crud.core :as org-crud]
+   [babashka.fs :as fs]))
 
 (defn item-has-tags
   "Returns truthy if the item has at least one matching tag."
@@ -33,6 +34,7 @@
      (when (seq tags)
        (->> tags (map #(str ":" %)) (string/join "\t"))))))
 
+^{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn item->title-content
   ([item] (item->title-content item nil))
   ([item opts]
@@ -73,3 +75,17 @@
   (->> tag-groups
        (mapcat #(content-with-tags items %))
        (string/join "\n")))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; item->uri
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn path->uri [path]
+  (-> path fs/file-name fs/strip-ext
+      (#(str (if (string/includes? path "/daily/")
+               "daily"
+               "note")
+             "/" % ".html"))))
+
+(defn item->uri [item]
+  (-> item :org/source-file path->uri))

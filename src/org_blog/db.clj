@@ -16,6 +16,12 @@
               [(:org/id item) item]))
        (into {})))
 
+(def notes-by-short-path
+  (->>
+    all-notes
+    (map (fn [n] [(:org/short-path n) n]))
+    (into {})))
+
 (def notes-by-id
   (->>
     all-notes

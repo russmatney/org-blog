@@ -26,12 +26,6 @@
 
 (def ^:dynamic *allowed-tags* config/allowed-tags)
 
-(defn path->uri [path]
-  (-> path fs/file-name fs/strip-ext (#(str "note/" % ".html"))))
-
-(comment
-  (path->uri *path*))
-
 (def this-ns *ns*)
 
 (defn export-note
@@ -43,7 +37,7 @@
        #'org-blog.note/*id->link-uri* (or id->link-uri *id->link-uri*)
        #'org-blog.note/*allowed-tags* (or allowed-tags *allowed-tags*)}
       (render/path+ns-sym->spit-static-html
-        (str "public/" (path->uri path))
+        (str "public/" (item/path->uri path))
         (symbol (str this-ns))))))
 
 ^{::clerk/no-cache true}

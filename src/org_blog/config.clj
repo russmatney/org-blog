@@ -34,38 +34,50 @@
   #{"til" "talk" "bugstory" "hammock" "publish" "goals"})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; published notes
+;; note defs
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn published-notes
-  "Returns a list of published notes."
+(defn note-defs
+  "Returns a list of note defs.
+
+  'defs' b/c this is not a full 'note', but just
+  some persisted options related to a note."
   []
   (sys/start! `*config*)
   (->>
-    (:published-notes @*config* {})
+    (:notes @*config* {})
     (map (fn [[path def]]
            (assoc def :org/short-path path)))))
 
-(defn published-note
-  "Returns a single note for the passed :org/short-path."
+(defn note-def
+  "Returns a single note def for the passed :org/short-path."
   [short-path]
   (sys/start! `*config*)
-  ((:published-notes @*config* {}) short-path))
+  ((:notes @*config* {}) short-path))
 
-(defn publish-note
-  "Adds the passed note to the :published-notes config.
-  Expects at least :org/short-path on the config."
+(defn persist-note-def
+  "Adds the passed note to the :notes config.
+  Expects at least :org/short-path on the config. "
   [note]
   (let [short-path (:org/short-path note)]
     (if-not short-path
       (println "[ERROR: config/update-note]: no :short-path for passed note")
       (-> @*config*
-          (update-in [:published-notes short-path] merge note)
+          (update-in [:notes short-path] merge note)
           write-config))
     (reload-config)))
 
+(defn drop-note-def
+  "Removes the note at the passed `:org/short-path` from the :notes config."
+  [short-path]
+  (-> @*config*
+      (update :notes dissoc short-path)
+      write-config)
+  (reload-config))
+
 (comment
-  (published-notes)
-  (published-note "garden/some-note.org")
-  (publish-note {:org/short-path "garden/some-note.org"
-                 :with/data      :hi/there}))
+  (note-defs)
+  (note-def "garden/some-note.org")
+  (persist-note-def {:org/short-path "garden/some-note.org"
+                     :with/data      :hi/there})
+  (drop-note-def "garden/some-note.org"))

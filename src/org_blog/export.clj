@@ -11,20 +11,30 @@
    [org-blog.note :as note]
    [org-blog.db :as db]
    [ralphie.notify :as notify]
-   [clojure.string :as string]
    [org-blog.index :as index]
    [tick.core :as t]
-   [garden.core :as garden]))
+   [garden.core :as garden]
+   [org-blog.config :as config]
+   [org-blog.item :as item]))
 
 
-(def ^:dynamic
-  ;; TODO improve how days are collected (maybe an 'earliest-date' makes sense)
-  *days-ago* 14)
+;; TODO drop completely, add ui for publishing dailies as regular notes
+(def ^:dynamic *days-ago* 14)
 (def ^:dynamic *days* (dates.tick/days *days-ago*))
 
-(defonce published-ids (atom #{}))
-(comment (reset! published-ids #{}))
+;; TODO could this just be a def? not sure we need the atom
 (defonce linked-items (atom #{}))
+
+(defn published-notes []
+  (->> (config/note-defs)
+       (map (fn [{:keys [org/short-path]}]
+              (db/notes-by-short-path short-path)))))
+
+(defn published-ids []
+  (->> (published-notes) (map :org/id) (into #{})))
+
+(defn published-id? [id]
+  ((published-ids) id))
 
 (defn days->ids
   ([] (days->ids *days*))
@@ -37,44 +47,23 @@
 
 (def day-ids (days->ids))
 
-(comment
-  (days->ids)
-  (->>
-    [(t/today)]
-    (filter daily/items-for-day)
-    (map :org/id)))
-
 (defn collect-linked-ids
-  "Assumes published-ids and *days* are set.
-
-  For the dailies in *days* (or `:days`) AND the published notes in `published-ids`,
-  collects all :org/links-to :link/ids and backlinks.
-
+  "Collects ref (normal) links and backlinks for the notes in `published-notes`.
   Returns a set of uuids."
   ([] (collect-linked-ids nil))
-  ([opts]
-   (let [days                  (:days opts *days*)
-         published-daily-items (->> days (mapcat daily/items-for-day))
-         published-notes       (->> @published-ids (map db/fetch-with-id))
-         published             (concat published-daily-items published-notes)
-         all-items             (->> published (mapcat org-crud/nested-item->flattened-items))
-         all-link-ids          (->> all-items (mapcat :org/links-to) (map :link/id) (into #{}))
-         all-item-ids          (->> all-items (map :org/id) (remove nil?) (into #{}))
-         all-backlink-ids      (->> all-item-ids (mapcat db/ids-linked-from) (into #{}))]
+  ([_opts]
+   (let [all-items        (->> (published-notes) (mapcat org-crud/nested-item->flattened-items))
+         all-link-ids     (->> all-items (mapcat :org/links-to) (map :link/id) (into #{}))
+         all-item-ids     (->> all-items (map :org/id) (remove nil?) (into #{}))
+         all-backlink-ids (->> all-item-ids (mapcat db/ids-linked-from) (into #{}))]
      (->> (concat all-backlink-ids all-link-ids) (into #{})))))
 
 (defn reset-linked-items
-  "Resets the linked-items lists, which is made up of linked (i.e. published) and missing items."
+  "Resets the linked-items lists, which is made up of both published and missing items."
   []
   (reset! linked-items (->> (collect-linked-ids) (map db/fetch-with-id))))
 
-(defn item->uri [item]
-  ;; TODO dry up uri creation (maybe in config?)
-  (let [path (-> item :org/source-file)]
-    (if (string/includes? path "/daily/")
-      (daily/path->uri path)
-      (note/path->uri path))))
-
+;; TODO refactor into one note timeline (not traversing dailies, traversing notes by created-at)
 (defn days-with-prev+next
   "Builds a list of `{:prev <date> :day <date> :next <date>}` day groups.
 
@@ -107,28 +96,35 @@
     (partition-all 3 1)
     (filter (comp #(> % 1) count))))
 
-(defn id-published? [id]
-  (or (@published-ids id) (day-ids id)))
+(defn id->link-uri
+  "Passed into org-crud to determine if a text link should be included or ignored.
 
-(defn id->link-uri [id]
-  ;; TODO move to db/config so that daily/note can consume it?
-  ;; it'll need to be passed/depend on published-ids somehow
+  Depends on `db/fetch-with-id` (plus others), `item/item->uri`, and `config/published-notes`.
+
+  This is passed into the pages... should move this elsewhere now that the state doesn't live
+  in this namespace, so the pages can call this directly.
+  "
+  [id]
   (let [item (db/fetch-with-id id)]
     (if-not item
       (println "[WARN: bad data]: could not find org item with id:" id)
       (let [linked-id (:org/id item)]
-        (if (id-published? id)
+        (if (published-id? linked-id)
           ;; TODO handle uris more explicitly (less '(str "/" blah)' everywhere)
-          (str "/" (item->uri item))
+          (str "/" (item/item->uri item))
 
-          ;; returning nil here to signal the link's removal
-          (println "[INFO: missing link]: removing link to unpublished note: "
-                   (:org/name item)))))))
+          (do
+            (println "[INFO: missing link]: removing link to unpublished note: "
+                     (:org/name item))
+            ;; returning nil here to signal the link's removal
+            nil))))))
 
+;; TODO probably drop/combine with publish-notes
 (defn publish-dailies
   ([] (publish-dailies nil))
   ([opts]
    (let [days (->> (:days opts *days*) sort days-with-prev+next)]
+     ;; TODO the daily render should not depend on export - should depend directly on notes from config
      (doseq [{:keys [day prev next]} days]
        (daily/export-for-day
          {:day          day
@@ -139,7 +135,8 @@
 (defn publish-notes
   ([] (publish-notes nil))
   ([_]
-   (let [notes-to-publish (->> @published-ids (map db/fetch-with-id))]
+   (let [notes-to-publish (published-notes)]
+     ;; TODO the note render should not depend on export - should depend directly on notes from config
      (doseq [note notes-to-publish]
        (note/export-note
          {:path         (:org/source-file note)
@@ -148,6 +145,7 @@
 (defn publish-index
   ([] (publish-index nil))
   ([_opts]
+   ;; TODO the index should not depend on export - should depend directly on notes from config
    (index/export-index
      {:id->link-uri id->link-uri
       :day-ids      day-ids
@@ -161,14 +159,11 @@
    (publish-index opts)))
 
 (comment
-  ;; These depend on published-ids being set
   (publish-dailies)
   (publish-notes)
   (publish-index)
 
   (publish-all))
-
-(reset-linked-items)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ actions
@@ -176,11 +171,15 @@
 
 (defn publish! [note-id]
   (notify/notify "publishing note" note-id)
-  (swap! published-ids conj (util/ensure-uuid note-id)))
+  (let [note (-> note-id db/notes-by-id)
+        def  {:org/short-path (:org/short-path note)}]
+    (config/persist-note-def def)))
 
 (defn unpublish! [note-id]
   (notify/notify "unpublishing note" note-id)
-  (swap! published-ids disj (util/ensure-uuid note-id)))
+  (let [note       (-> note-id db/notes-by-id)
+        short-path (:org/short-path note)]
+    (config/drop-note-def short-path)))
 
 (defn open-in-emacs! [note-id]
   (notify/notify "open in emacs!" "not impled")
@@ -244,37 +243,26 @@
                                         ~(-> note :org/id :nextjournal/value :value))))}
                 (str "unpublish: " (:org/name note))])]])]))}}
 (->> @linked-items
-     (map (fn [item] (assoc item :published (id-published? (:org/id item)))))
+     (map (fn [item] (assoc item :published (published-id? (:org/id item)))))
      (sort-by :published)
      (into []))
-
 
 
 ;; ### published items
 (clerk/table
   {::clerk/width :full}
   (or
-    (->> @published-ids (map db/fetch-with-id)
+    (->> (published-notes)
          (map select-org-keys)
          seq)
     [{:no-data nil}]))
 
-;; ### missing items
-(clerk/table
-  {::clerk/width :full}
-  (or
-    (->> @linked-items (map :org/id) (into #{})
-         (#(set/difference % (->> (concat @published-ids day-ids) (into #{}))))
-         (map db/fetch-with-id)
-         (map select-org-keys)
-         seq)
-    [{:no-data nil}]))
-
-;; ### all linked items
+;; ### unpublished, linked items
 (clerk/table
   {::clerk/width :full}
   (or
     (->> @linked-items
+         (remove (fn [{:keys [org/id]}] (published-id? id)))
          (map select-org-keys)
          seq)
     [{:no-data nil}]))
