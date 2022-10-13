@@ -66,6 +66,7 @@
   (index/export {:notes (publish/published-notes)}))
 
 (defn publish-all
+  ;; TODO delete notes that aren't here?
   []
   (publish-notes)
   (publish-index))
