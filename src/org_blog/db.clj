@@ -6,6 +6,7 @@
    [org-crud.core :as org-crud]))
 
 ;; TODO consider a systemic system
+;; TODO watcher that updates this system on org file-save
 (def all-notes
   (garden/all-garden-notes-nested))
 

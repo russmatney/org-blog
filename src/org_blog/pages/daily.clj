@@ -46,6 +46,3 @@
 
 ^{::clerk/no-cache true}
 (clerk/md (->> (item/backlinks (:org/id *note*)) (string/join "\n")))
-
-(clerk/html
-  [:div [:a {:href "/index.html"} (str "^^ index")]])

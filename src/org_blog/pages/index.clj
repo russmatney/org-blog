@@ -52,7 +52,7 @@
 
 (clerk/html [:div
              {:class ["flex" "flex-row" "justify-center"]}
-             [:h1 "Index"]])
+             [:h2 {:class ["font-mono"]} "All"]])
 
 ^{::clerk/no-cache true}
 (clerk/html
@@ -79,10 +79,14 @@
                            :href  (publish/id->link-uri (:org/id note))}
                           (:org/name note)]]
 
+                        ;; [:div
+                        ;;  {:class ["font-mono"]}
+                        ;;  (->> note :file/last-modified dates/parse-time-string
+                        ;;       (t/format (t/formatter "hh:mma")))]
+
                         (into [:div {:class ["font-mono"]}]
                               (for [tag all-tags]
-                                (str "#" tag " ")))
-                        ])))
+                                (str "#" tag " ")))])))
 
              [:hr]]))]])
 

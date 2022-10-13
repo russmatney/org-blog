@@ -21,12 +21,34 @@
       (println "error evaling notebook", ns-sym)
       (println e))))
 
-(comment
-  (eval-notebook 'org-blog.daily)
-  (-> 'org-blog.daily
-      clerk-analyzer/ns->path
-      (str ".clj")
-      io/resource))
+(def title "DangerRuss Notes")
+(def about-link-uri "/notes/blog-about.html")
+
+(defn header []
+  [:div
+   {:class ["flex" "flex-col" "items-center"
+            "text-gray-900" "dark:text-white"]}
+   [:div
+    {:class ["flex" "flex-row"
+             "items-center"
+             "max-w-prose" "w-full" "px-8" "py-2"]}
+    [:h3 {:class ["font-mono"]} title]
+
+    [:div
+     {:class ["ml-auto" "flex" "flex-row" "space-x-4"]}
+     [:div
+      [:h4
+       [:a {:class ["font-mono"
+                    "hover:underline"
+                    "cursor-pointer"]
+            :href  "/index.html"} "all"]]]
+     [:div
+      [:h4
+       [:a {:class ["font-mono"
+                    "hover:underline"
+                    "cursor-pointer"]
+            :href  about-link-uri} "about"]]]]]
+   [:hr]])
 
 (defn ->html [{:keys [conn-ws?] :or {conn-ws? true}} state]
   (hiccup/html5
@@ -36,6 +58,7 @@
      [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
      (clerk-view/include-css+js)]
     [:body.dark:bg-gray-900
+     (header)
      [:div#clerk]
      [:script "let viewer = nextjournal.clerk.sci_viewer
 let state = " (-> state clerk-viewer/->edn pr-str) "
