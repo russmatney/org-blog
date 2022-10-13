@@ -22,7 +22,7 @@
       (println e))))
 
 (def title "DangerRuss Notes")
-(def about-link-uri "/notes/blog-about.html")
+(def about-link-uri "/note/blog_about.html")
 
 (defn header []
   [:div
