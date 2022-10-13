@@ -2,12 +2,14 @@
  {"garden/some-note.org"
   {:org/short-path "garden/some-note.org", :with/data :hi/there}},
  :notes
- {"daily/2022-10-11.org" {:org/short-path "daily/2022-10-11.org"},
-  "daily/2022-10-03.org" {:org/short-path "daily/2022-10-03.org"},
-  "daily/2022-10-05.org" {:org/short-path "daily/2022-10-05.org"},
+ {"daily/2022-10-03.org" {:org/short-path "daily/2022-10-03.org"},
   "garden/async_mario_kart.org"
   {:org/short-path "garden/async_mario_kart.org"},
+  "daily/2022-10-08.org" {:org/short-path "daily/2022-10-08.org"},
+  "daily/2022-10-13.org" {:org/short-path "daily/2022-10-13.org"},
   "garden/dropping_bananas.org"
   {:org/short-path "garden/dropping_bananas.org"},
-  "daily/2022-10-08.org" {:org/short-path "daily/2022-10-08.org"},
+  "daily/2022-10-05.org" {:org/short-path "daily/2022-10-05.org"},
+  "garden/blog_about.org" {:org/short-path "garden/blog_about.org"},
+  "daily/2022-10-11.org" {:org/short-path "daily/2022-10-11.org"},
   "daily/2022-10-10.org" {:org/short-path "daily/2022-10-10.org"}}}
