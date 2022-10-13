@@ -5,13 +5,13 @@
    [garden.core :as garden]
    [org-crud.core :as org-crud]
    [nextjournal.clerk :as clerk]
-   [tick.core :as t]
    [org-blog.render :as render]
    [org-blog.item :as item]
    [org-blog.config :as config]
    [org-blog.publish :as publish]))
 
-(def ^:dynamic *note* (-> (t/today) garden/daily-path org-crud/path->nested-item))
+(def ^:dynamic *note*
+  (-> (garden/daily-path 2) org-crud/path->nested-item))
 
 (def this-ns *ns*)
 
