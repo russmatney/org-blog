@@ -5,6 +5,7 @@
    [garden.core :as garden]
    [org-crud.core :as org-crud]))
 
+;; TODO consider a systemic system
 (def all-notes
   (garden/all-garden-notes-nested))
 

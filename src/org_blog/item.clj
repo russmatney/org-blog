@@ -4,7 +4,8 @@
    [org-crud.markdown :as org-crud.markdown]
    [clojure.string :as string]
    [org-crud.core :as org-crud]
-   [babashka.fs :as fs]))
+   [org-blog.publish :as publish]
+   [org-blog.db :as db]))
 
 (defn item-has-tags
   "Returns truthy if the item has at least one matching tag."
@@ -22,6 +23,10 @@
 
 (defn items-with-parent [items parent-names]
   (->> items (filter #(item-has-parent % parent-names))))
+
+(defn item->all-tags [item]
+  (->> item org-crud/nested-item->flattened-items
+       (mapcat :org/tags) (into #{})))
 
 (defn item->tag-line
   ([item] (item->tag-line nil item))
@@ -44,7 +49,7 @@
   "Returns a seq of strings"
   ([item] (item->md-content item nil))
   ([item opts]
-   (let [
+   (let [opts (merge {:id->link-uri publish/id->link-uri} opts)
          [title & body]
          (org-crud.markdown/item->md-body item opts)]
      (concat
@@ -77,15 +82,25 @@
        (string/join "\n")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; item->uri
+;; links and backlinks
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn path->uri [path]
-  (-> path fs/file-name fs/strip-ext
-      (#(str (if (string/includes? path "/daily/")
-               "daily"
-               "note")
-             "/" % ".html"))))
+(defn backlink-list
+  [id]
+  (->> id
+       db/notes-linked-from
+       (filter (comp publish/id->link-uri :org/id)) ;; filter if not 'published'
+       (mapcat (fn [item]
+                 (let [link-name (:org/parent-name item (:org/name item))]
+                   (concat
+                     [(str "### [" link-name "](" (-> item :org/id publish/id->link-uri) ")")]
+                     (org-crud.markdown/item->md-body item {:id->link-uri publish/id->link-uri})))))))
 
-(defn item->uri [item]
-  (-> item :org/source-file path->uri))
+(defn backlinks
+  "Returns markdown representing a list of backlinks for given `:org/id`"
+  [id]
+  (let [blink-lines (backlink-list id)]
+    (when (seq blink-lines)
+      (concat
+        ["---" "" "# Backlinks" ""]
+        blink-lines))))
