@@ -1,0 +1,3 @@
+{:published-notes
+ {"garden/some-note.org"
+  {:org/short-path "garden/some-note.org", :with/data :hi/there}}}
