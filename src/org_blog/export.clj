@@ -1,36 +1,35 @@
 (ns org-blog.export
   {:nextjournal.clerk/visibility {:code :hide :result :hide}}
   (:require
-   [clojure.string :as string]
    [nextjournal.clerk :as clerk]
+   [babashka.fs :as fs]
    [org-crud.core :as org-crud]
 
-   [dates.tick :as dates.tick]
    [garden.core :as garden]
    [ralphie.notify :as notify]
 
    [org-blog.db :as db]
    [org-blog.config :as config]
-   [org-blog.pages.daily :as daily]
-   [org-blog.pages.note :as note]
    [org-blog.publish :as publish]
-   [org-blog.item :as item]
-   [org-blog.render :as render]))
+   [org-blog.item :as item]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ "recent daily notes"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def default-days-ago 14)
+(def recent-file-count 14)
 
-(defn recent-daily-notes
-  ([] (recent-daily-notes nil))
-  ([days-ago]
-   (let [days (dates.tick/days (or days-ago default-days-ago))]
-     (->> days
-          (filter garden/daily-path)
-          (map (comp org-crud/path->nested-item garden/daily-path))
-          (remove nil?)))))
+(defn recent-notes
+  []
+  (->> (garden/all-garden-paths)
+       (sort-by (comp str fs/last-modified-time))
+       (reverse)
+       (take recent-file-count)
+       (map org-crud/path->nested-item)
+       (remove nil?)))
+
+(comment
+  (recent-notes))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ "linked ids"
@@ -47,45 +46,9 @@
          all-backlink-ids (->> all-item-ids (mapcat db/ids-linked-from) (into #{}))]
      (->> (concat all-backlink-ids all-link-ids) (into #{})))))
 
-
 ^{::clerk/no-cache true}
 (def linked-items (->> (collect-linked-ids)
                        (map (db/notes-by-id))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-#_ "publish funcs"
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn publish-notes []
-  (let [notes-to-publish (publish/published-notes)]
-    (doseq [note notes-to-publish]
-      (println "[EXPORT] exporting note: " (:org/short-path note))
-      (if (-> note :org/source-file (string/includes? "/daily/"))
-        (with-bindings {#'org-blog.pages.daily/*note* note}
-          (render/path+ns-sym->spit-static-html
-            (str "public" (publish/note->uri note))
-            'org-blog.pages.daily))
-
-        (with-bindings {#'org-blog.pages.note/*note* note}
-          (render/path+ns-sym->spit-static-html
-            (str "public" (publish/note->uri note))
-            'org-blog.pages.note))))))
-
-(defn publish-index []
-  (println "[EXPORT] exporting index.")
-  (render/path+ns-sym->spit-static-html
-    (str "public/index.html") 'org-blog.pages.index))
-
-(defn publish-all
-  ;; TODO delete notes that aren't here?
-  []
-  (publish-notes)
-  (publish-index))
-
-(comment
-  (publish-notes)
-  (publish-index)
-  (publish-all))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ actions
@@ -122,6 +85,9 @@
             ;; label
             [:div
              (-> note :org/name)]
+
+            [:div
+             (-> note :file/last-modified)]
 
             [:div
              (->> note :all-tags (clojure.string/join ":"))]
@@ -167,17 +133,17 @@
 
 ;; # export
 
-;; ### recent dailies
+;; ### recently modified
 
 ^{::clerk/no-cache true
   ::clerk/viewer   note-publish-buttons}
-(->> (recent-daily-notes)
+(->> (recent-notes)
      (map (fn [note]
             (-> note
                 (assoc :published (publish/published-id? (:org/id note)))
-                (assoc :all-tags (item/item->all-tags note)))))
-     (sort-by :org/short-path)
-     reverse
+                (assoc :all-tags (item/item->all-tags note))
+                (assoc :last-modified
+                       (:file/last-modified note)))))
      (sort-by :published)
      (into []))
 

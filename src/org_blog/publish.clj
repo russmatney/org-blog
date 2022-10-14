@@ -1,8 +1,13 @@
 (ns org-blog.publish
-  (:require [org-blog.db :as db]
-            [org-blog.config :as config]
-            [babashka.fs :as fs]
-            [clojure.string :as string]))
+  (:require
+   [babashka.fs :as fs]
+   [clojure.string :as string]
+
+   [org-blog.db :as db]
+   [org-blog.config :as config]
+   [org-blog.render :as render]
+   [org-blog.pages.daily :as daily]
+   [org-blog.pages.note :as note]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ "published notes"
@@ -48,3 +53,39 @@
                      (:org/name note))
             ;; returning nil here to signal the link's removal
             nil))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+#_ "publish funcs"
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn publish-notes []
+  (let [notes-to-publish (published-notes)]
+    (doseq [note notes-to-publish]
+      (println "[EXPORT] exporting note: " (:org/short-path note))
+      (if (-> note :org/source-file (string/includes? "/daily/"))
+        (with-bindings {daily/*note* note}
+          (render/path+ns-sym->spit-static-html
+            (str "public" (note->uri note))
+            'org-blog.pages.daily))
+
+        (with-bindings {note/*note* note}
+          (render/path+ns-sym->spit-static-html
+            (str "public" (note->uri note))
+            'org-blog.pages.note))))))
+
+(defn publish-index []
+  (println "[EXPORT] exporting index.")
+  (render/path+ns-sym->spit-static-html
+    (str "public/index.html") 'org-blog.pages.index))
+
+(defn publish-all
+  ;; TODO delete notes that aren't here?
+  []
+  (publish-notes)
+  (publish-index))
+
+(comment
+  (publish-notes)
+  (publish-index)
+  (publish-all))
