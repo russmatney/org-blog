@@ -47,9 +47,10 @@
          all-backlink-ids (->> all-item-ids (mapcat db/ids-linked-from) (into #{}))]
      (->> (concat all-backlink-ids all-link-ids) (into #{})))))
 
+
 ^{::clerk/no-cache true}
 (def linked-items (->> (collect-linked-ids)
-                       (map db/notes-by-id)))
+                       (map (db/notes-by-id))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ "publish funcs"
@@ -83,13 +84,13 @@
 
 (defn publish-note! [short-path]
   (notify/notify "publishing note" short-path)
-  (let [note (db/notes-by-short-path short-path)
+  (let [note ((db/notes-by-short-path) short-path)
         def  {:org/short-path (:org/short-path note)}]
     (config/persist-note-def def)))
 
 (defn unpublish-note! [short-path]
   (notify/notify "unpublishing note" short-path)
-  (let [note       (db/notes-by-short-path short-path)
+  (let [note       ((db/notes-by-short-path) short-path)
         short-path (:org/short-path note)]
     (config/drop-note-def short-path)))
 

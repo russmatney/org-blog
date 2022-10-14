@@ -10,8 +10,9 @@
    [org-blog.config :as config]
    [org-blog.publish :as publish]))
 
+^{::clerk/no-cache true}
 (def ^:dynamic *note*
-  (-> (garden/daily-path 2) org-crud/path->nested-item))
+  (-> (garden/daily-path #_2) org-crud/path->nested-item))
 
 (def this-ns *ns*)
 
@@ -21,7 +22,7 @@
   (with-bindings
     {#'org-blog.pages.daily/*note* note}
     (render/path+ns-sym->spit-static-html
-      (str "public/" (publish/note->uri note))
+      (str "public" (publish/note->uri note))
       (symbol (str this-ns)))))
 
 (defn note->daily-items [note]

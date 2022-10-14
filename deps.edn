@@ -8,5 +8,6 @@
          {:sha     "963662d40b5d9d6dccf5c72895771b773fc7851a"
           :git/url "https://github.com/nextjournal/clerk.git"}
          teknql/systemic {:mvn/version "0.2.1"}
-         aero/aero {:mvn/version "1.1.6"}}
+         aero/aero {:mvn/version "1.1.6"}
+         juxt/dirwatch {:mvn/version "0.2.5"}}
  :aliases {}}
