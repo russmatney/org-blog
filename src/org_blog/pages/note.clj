@@ -4,9 +4,7 @@
    [clojure.string :as string]
    [nextjournal.clerk :as clerk]
 
-   [org-blog.render :as render]
    [org-blog.item :as item]
-   [org-blog.publish :as publish]
    [org-blog.db :as db]))
 
 ^{::clerk/no-cache true}
@@ -15,16 +13,6 @@
        ;; (remove (comp #(string/includes? % "/daily/") :org/source-file))
        (sort-by :file/last-modified)
        last))
-
-(def this-ns *ns*)
-
-(defn export
-  [{:keys [note]}]
-  (println "[EXPORT] exporting note: " (:org/short-path note))
-  (with-bindings {#'org-blog.pages.note/*note* note}
-    (render/path+ns-sym->spit-static-html
-      (str "public" (publish/note->uri note))
-      (symbol (str this-ns)))))
 
 (defn note->content
   [note]

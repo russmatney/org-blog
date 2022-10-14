@@ -13,9 +13,9 @@
    [org-blog.config :as config]
    [org-blog.pages.daily :as daily]
    [org-blog.pages.note :as note]
-   [org-blog.pages.index :as index]
    [org-blog.publish :as publish]
-   [org-blog.item :as item]))
+   [org-blog.item :as item]
+   [org-blog.render :as render]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ "recent daily notes"
@@ -59,12 +59,22 @@
 (defn publish-notes []
   (let [notes-to-publish (publish/published-notes)]
     (doseq [note notes-to-publish]
+      (println "[EXPORT] exporting note: " (:org/short-path note))
       (if (-> note :org/source-file (string/includes? "/daily/"))
-        (daily/export {:note note})
-        (note/export {:note note})))))
+        (with-bindings {#'org-blog.pages.daily/*note* note}
+          (render/path+ns-sym->spit-static-html
+            (str "public" (publish/note->uri note))
+            'org-blog.pages.daily))
+
+        (with-bindings {#'org-blog.pages.note/*note* note}
+          (render/path+ns-sym->spit-static-html
+            (str "public" (publish/note->uri note))
+            'org-blog.pages.note))))))
 
 (defn publish-index []
-  (index/export {:notes (publish/published-notes)}))
+  (println "[EXPORT] exporting index.")
+  (render/path+ns-sym->spit-static-html
+    (str "public/index.html") 'org-blog.pages.index))
 
 (defn publish-all
   ;; TODO delete notes that aren't here?

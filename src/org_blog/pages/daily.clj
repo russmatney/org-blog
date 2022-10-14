@@ -2,28 +2,16 @@
   {:nextjournal.clerk/visibility {:code :hide :result :hide}}
   (:require
    [clojure.string :as string]
-   [garden.core :as garden]
-   [org-crud.core :as org-crud]
    [nextjournal.clerk :as clerk]
-   [org-blog.render :as render]
+   [org-crud.core :as org-crud]
+   [garden.core :as garden]
+
    [org-blog.item :as item]
-   [org-blog.config :as config]
-   [org-blog.publish :as publish]))
+   [org-blog.config :as config]))
 
 ^{::clerk/no-cache true}
 (def ^:dynamic *note*
   (-> (garden/daily-path #_2) org-crud/path->nested-item))
-
-(def this-ns *ns*)
-
-(defn export
-  [{:keys [note]}]
-  (println "[EXPORT] exporting daily for: " (:org/short-path note))
-  (with-bindings
-    {#'org-blog.pages.daily/*note* note}
-    (render/path+ns-sym->spit-static-html
-      (str "public" (publish/note->uri note))
-      (symbol (str this-ns)))))
 
 (defn note->daily-items [note]
   (some->> note :org/items (filter #(item/item-has-tags % config/allowed-tags))))

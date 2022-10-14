@@ -5,18 +5,10 @@
    [tick.core :as t]
    [dates.tick :as dates]
 
-   [org-blog.render :as render]
    [org-blog.item :as item]
    [org-blog.publish :as publish]))
 
 (def *notes* (publish/published-notes))
-
-(def this-ns *ns*)
-
-(defn export []
-  (println "[EXPORT] exporting index.")
-  (render/path+ns-sym->spit-static-html
-    (str "public/index.html") (symbol (str this-ns))))
 
 (defn notes-by-day [notes]
   (->> notes
