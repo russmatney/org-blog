@@ -6,15 +6,14 @@
    [org-crud.core :as org-crud]
    [garden.core :as garden]
 
-   [org-blog.item :as item]
-   [org-blog.config :as config]))
+   [org-blog.item :as item]))
 
 ^{::clerk/no-cache true}
 (def ^:dynamic *note*
   (-> (garden/daily-path #_2) org-crud/path->nested-item))
 
 (defn note->daily-items [note]
-  (some->> note :org/items (filter #(item/item-has-tags % config/allowed-tags))))
+  (some->> note :org/items (filter item/item-has-any-tags)))
 
 (defn daily-content
   [note]

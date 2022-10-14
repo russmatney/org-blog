@@ -10,8 +10,8 @@
 
    [org-blog.db :as db]
    [org-blog.config :as config]
-   [org-blog.publish :as publish]
-   [org-blog.item :as item]))
+   [org-blog.item :as item]
+   [org-blog.notes :as notes]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ "recent daily notes"
@@ -40,7 +40,7 @@
   Returns a set of uuids."
   ([] (collect-linked-ids nil))
   ([_opts]
-   (let [all-items        (->> (publish/published-notes) (mapcat org-crud/nested-item->flattened-items))
+   (let [all-items        (->> (notes/published-notes) (mapcat org-crud/nested-item->flattened-items))
          all-link-ids     (->> all-items (mapcat :org/links-to) (map :link/id) (into #{}))
          all-item-ids     (->> all-items (map :org/id) (remove nil?) (into #{}))
          all-backlink-ids (->> all-item-ids (mapcat db/ids-linked-from) (into #{}))]
@@ -140,7 +140,7 @@
 (->> (recent-notes)
      (map (fn [note]
             (-> note
-                (assoc :published (publish/published-id? (:org/id note)))
+                (assoc :published (notes/published-id? (:org/id note)))
                 (assoc :all-tags (item/item->all-tags note))
                 (assoc :last-modified
                        (:file/last-modified note)))))
@@ -152,7 +152,7 @@
 ^{::clerk/no-cache true
   ::clerk/viewer   note-publish-buttons}
 (->> linked-items
-     (map (fn [note] (assoc note :published (publish/published-id? (:org/id note)))))
+     (map (fn [note] (assoc note :published (notes/published-id? (:org/id note)))))
      (sort-by :published)
      (into []))
 
@@ -162,7 +162,7 @@
 (clerk/table
   {::clerk/width :full}
   (or
-    (->> (publish/published-notes)
+    (->> (notes/published-notes)
          (map select-org-keys)
          seq)
     [{:no-data nil}]))
@@ -173,7 +173,7 @@
   {::clerk/width :full}
   (or
     (->> linked-items
-         (remove (fn [{:keys [org/id]}] (publish/published-id? id)))
+         (remove (fn [{:keys [org/id]}] (notes/published-id? id)))
          (map select-org-keys)
          seq)
     [{:no-data nil}]))

@@ -6,9 +6,10 @@
    [dates.tick :as dates]
 
    [org-blog.item :as item]
-   [org-blog.publish :as publish]))
+   [org-blog.notes :as notes]
+   [org-blog.uri :as uri]))
 
-(def *notes* (publish/published-notes))
+(def ^:dynamic *notes* (notes/published-notes))
 
 (defn notes-by-day [notes]
   (->> notes
@@ -28,7 +29,7 @@
       {:class ["hover:underline"]}
       [:a
        {:class ["cursor-pointer"]
-        :href  (publish/id->link-uri (:org/id note))}
+        :href  (uri/id->link-uri (:org/id note))}
        (:org/name note)]]
 
      ;; [:div

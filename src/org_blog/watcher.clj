@@ -7,7 +7,7 @@
 
    [org-blog.db :as db]
    [org-blog.config :as config]
-   [org-blog.export :as export]))
+   [org-blog.publish :as publish]))
 
 (defn org-dir-path []
   (fs/file (str (fs/home) "/todo")))
@@ -44,7 +44,8 @@
         (clerk/recompute!)
 
         (when (config/export-mode?)
-          (export/publish-all))))
+          ;; TODO only publish the edited file and index and links/backlinks
+          (publish/publish-all))))
     (org-dir-path))
 
   :stop

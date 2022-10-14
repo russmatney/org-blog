@@ -83,15 +83,24 @@
     (mapcat org-crud/nested-item->flattened-items)
     (reduce
       (fn [agg item]
-        (if (:org/id item)
-          (let [link-ids (->> item :org/links-to (map :link/id))]
-            (reduce (fn [agg link-id]
-                      (if (get agg link-id)
-                        (update agg link-id conj (:org/id item))
-                        (assoc agg link-id #{(:org/id item)})))
-                    agg
-                    link-ids))
-          agg))
+        (let [item-id (:org/id item
+                               ;; we need an id for what is linking to this thing
+                               ;; yuck, this is a set, we want... the first? or last?
+                               ;; TODO move to a sensible stack here (org-crud)
+                               ;; this is used for backlinks, so we really want the linking context...
+                               ;; maybe want to require ids for items with links
+                               (some-> item :org/parent-ids first))]
+          (if-not item-id
+            (do
+              (println "no id/parent-id for link" item)
+              agg)
+            (let [link-ids (->> item :org/links-to (map :link/id))]
+              (reduce (fn [agg link-id]
+                        (if (get agg link-id)
+                          (update agg link-id conj item-id)
+                          (assoc agg link-id #{item-id})))
+                      agg
+                      link-ids)))))
       {})))
 
 (defn ids-linked-from
@@ -105,10 +114,25 @@
   (->> (ids-linked-from id)
        (map
          ;; linking to child items? or roots only?
-         (all-flattened-notes-by-id)
+         (fn [id] ((all-flattened-notes-by-id) id))
          #_fetch-with-id)))
 
 
 (comment
+  (count
+    (root-ids-by-link-id))
+
+  (root-ids-by-link-id)
+
+  (->>
+    (all-notes)
+    (sort-by :file/last-modified)
+    (reverse)
+    (take 2))
+
+  (fetch-with-id #uuid "b4e38bb2-2e05-43e4-9a88-808a55602932")
+  (ids-linked-from #uuid "b4e38bb2-2e05-43e4-9a88-808a55602932")
+  (notes-linked-from #uuid "b4e38bb2-2e05-43e4-9a88-808a55602932")
+
   (fetch-with-id #uuid "8b22b22a-c442-4859-9927-641f8405ec8d")
   (notes-linked-from #uuid "8b22b22a-c442-4859-9927-641f8405ec8d"))
