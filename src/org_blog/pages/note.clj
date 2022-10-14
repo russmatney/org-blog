@@ -12,7 +12,7 @@
 ^{::clerk/no-cache true}
 (def ^:dynamic *note*
   (->> (db/all-notes)
-       (remove (comp #(string/includes? % "/daily/") :org/source-file))
+       ;; (remove (comp #(string/includes? % "/daily/") :org/source-file))
        (sort-by :file/last-modified)
        last))
 

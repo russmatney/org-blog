@@ -72,7 +72,6 @@
   (publish-notes)
   (publish-index))
 
-
 (comment
   (publish-notes)
   (publish-index)
