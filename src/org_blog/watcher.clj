@@ -5,7 +5,9 @@
    [babashka.fs :as fs]
    [nextjournal.clerk :as clerk]
 
-   [org-blog.db :as db]))
+   [org-blog.db :as db]
+   [org-blog.config :as config]
+   [org-blog.export :as export]))
 
 (defn org-dir-path []
   (fs/file (str (fs/home) "/todo")))
@@ -39,14 +41,17 @@
         (db/refresh-notes)
 
         ;; re-eval open clerk clients
-        (clerk/recompute!)))
+        (clerk/recompute!)
+
+        (when (config/export-mode?)
+          (export/publish-all))))
     (org-dir-path))
 
   :stop
   ;; (log/debug "Closing *org-watcher*")
   (dirwatch/close-watcher *org-watcher*))
 
-
 (comment
   (sys/start! `*org-watcher*)
-  *org-watcher*)
+  *org-watcher*
+  (config/toggle-export-mode))
