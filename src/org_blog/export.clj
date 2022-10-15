@@ -134,9 +134,10 @@
             [:div
              [:span
               {:class ["font-mono"]}
-              (->> note :all-tags
-                   (take 5)
-                   (clojure.string/join ":"))]]
+              (str
+                (when (->> note :all-tags seq) "#")
+                (->> note :all-tags (take 5)
+                  (clojure.string/join "#")))]]
 
             ;; actions
             [:div
@@ -196,9 +197,33 @@
              [:div
               {:class ["border" "border-amber-800"]}
               (for [item (->> note :org/items)]
-                [:h4
-                 {:class ["font-mono"]}
-                 (:org/name item)])])]))]))})
+                [:div
+                 [:h4
+                  {:class ["font-mono"]}
+                  (:org/name item)
+
+                  [:span
+                  {:class ["text-slate-500"]}
+                   (str
+                     " " (when (->> item :org/tags seq) "#")
+                     (->> item :org/tags (take 5) (clojure.string/join "#")))]]
+
+                 (when (-> item :org/links-to seq)
+                   [:div
+                    (for [link (-> item :org/links-to)]
+                      [:h4
+                       {:class ["font-mono"]}
+                       " -> " (:link/text link)])])
+
+                 (when (-> item :org/urls seq)
+                   [:div
+                    (for [url (-> item :org/urls)]
+                      [:h4
+                       [:a {:href  url :_target "blank" :class ["font-mono"]}
+                           url]])])
+
+                 [:hr]
+                 ])])]))]))})
 
 (defn select-org-keys [note]
   (select-keys note [:org/name :org/tags #_ :org/id #_ :org/short-path
