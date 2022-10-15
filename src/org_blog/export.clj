@@ -11,7 +11,8 @@
    [org-blog.db :as db]
    [org-blog.config :as config]
    [org-blog.item :as item]
-   [org-blog.notes :as notes]))
+   [org-blog.notes :as notes]
+   [clojure.string :as string]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ "recent daily notes"
@@ -70,6 +71,8 @@
     (notify/notify "open in emacs!" "not impled")
     nil)
 
+;; actions
+
 (def note-publish-buttons
   {:name         :publishing-notes
    :transform-fn clerk/mark-presented
@@ -83,14 +86,9 @@
             {:class ["flex" "flex-row" "space-x-4" "justify-between" "align-center"]}
 
             ;; label
-            [:div
-             (-> note :org/name)]
-
-            [:div
-             (-> note :file/last-modified)]
-
-            [:div
-             (->> note :all-tags (clojure.string/join ":"))]
+            [:div (-> note :org/name)]
+            [:div (-> note :file/last-modified)]
+            [:div (->> note :all-tags (clojure.string/join ":"))]
 
             ;; actions
             [:div
@@ -117,21 +115,53 @@
                 (str "unpublish: " (:org/name note))])]])]))})
 
 (defn select-org-keys [note]
-  (select-keys note
-               [:org/name
-                ;; :org/short-path
-                :org/tags
-                ;; :org/links-to
-                :org/level
-                ;; :org/id
-                :org/body-string
-                ]))
+  (select-keys note [:org/name :org/tags #_ :org/id #_ :org/short-path
+                     #_ :org/links-to :org/level :org/body-string]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
 
 ;; # export
+
+;; ### recently modified 2
+
+(defn publish-button [note]
+  [:div
+   (when (not (:published note))
+     [:button
+      {:class ["bg-green-700" "hover:bg-green-600"
+               "text-slate-300" "font-bold"
+               "py-2" "px-4" "m-1"
+               "rounded"]
+       ;; TODO figure how jvm hiccup writes clerk-evals
+       ;; :on-click (fn [_]
+       ;;             (publish-note! (-> note :org/short-path)))
+       ;; :on-click (fn [_]
+       ;;             #_(v/clerk-eval `(org-blog.export/publish-note! ~(-> note :org/short-path))))
+       }
+      (str "publish: " (:org/name note))])])
+
+^{::clerk/no-cache true}
+(clerk/html
+  [:div
+   (->>
+     (recent-notes)
+     (sort-by :published)
+     (map (fn [note]
+            (-> note
+                (assoc :published (publish/published-id? (:org/id note)))
+                (assoc :all-tags (item/item->all-tags note))
+                (assoc :last-modified (:file/last-modified note)))))
+     (map (fn [note]
+            [:div
+             {:class ["flex" "flex-row" "space-x-4" "justify-between" "align-center"]}
+
+             [:div (-> note :org/name)]
+             [:div (-> note :file/last-modified)]
+             [:div (->> note :all-tags (string/join ":"))]
+             (publish-button note)]))
+     (into [:div]))])
 
 ;; ### recently modified
 
