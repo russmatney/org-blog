@@ -33,6 +33,10 @@
   (->> item org-crud/nested-item->flattened-items
        (mapcat :org/tags) (into #{})))
 
+(defn item->all-links [item]
+  (->> item org-crud/nested-item->flattened-items
+       (mapcat :org/links-to) (into #{})))
+
 (defn item->tag-line
   ([item] (item->tag-line nil item))
   ([opts item]
