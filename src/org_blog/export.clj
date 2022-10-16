@@ -91,9 +91,8 @@
            (reagent.core/with-let [show-items (reagent.core/atom {0 true})
                                    show-links (reagent.core/atom {})]
              [:div
-              {:class ["my-1"
-                       "flex" "flex-col" "space-x-4" "justify-center" "w-full"
-                       "px-4" "py-2"
+              {:class ["flex" "flex-col" "space-x-4" "justify-center" "w-full"
+                       "px-4" "py-2" "my-1"
                        "border" "border-2" "border-emerald-600"
                        "rounded"]}
 
@@ -103,8 +102,7 @@
 
                [:h4
                 [:button
-                 {:class    ["text-emerald-500"
-                             "hover:text-emerald-300"]
+                 {:class    ["text-emerald-500" "hover:text-emerald-300"]
                   :on-click (fn [_] (v/clerk-eval
                                       `(org-blog.export/open-in-emacs!
                                          ~(-> note :org/short-path))))}
@@ -135,8 +133,7 @@
                  {:class ["font-mono"]}
                  (str
                    (when (->> note :all-tags seq) "#")
-                   (->> note :all-tags (take 5)
-                        (clojure.string/join "#")))]]
+                   (->> note :all-tags (take 5) (clojure.string/join " #")))]]
 
                ;; actions
                [:div
@@ -195,34 +192,64 @@
               (when (@show-items i)
                 [:div
                  {:class ["border" "border-amber-800"]}
-                 (for [item (->> note :org/items)]
+                 (for [item (->> note :org/items
+                                 (sort-by (comp boolean seq :org/tags))
+                                 reverse)]
                    [:div
-                    [:h4
+                    [:div
                      {:class ["font-mono"]}
-                     (:name-str item)
+
+                     (when (:org/status item)
+                       [:span
+                        {:class ["pr-2"]}
+                        (case (:org/status item)
+                          :status/done        "[X]"
+                          :status/not-started "[ ]"
+                          :status/in-progress "[-]"
+                          :status/skipped     "SKIP"
+                          :status/cancelled   "CANCELLED"
+                          :else
+                          (str (:org/status item)))])
 
                      [:span
-                      {:class ["text-slate-500"]}
-                      (str
-                        " " (when (->> item :org/tags seq) "#")
-                        (->> item :org/tags (take 5) (clojure.string/join "#")))]]
+                      {:class ["text-lg"
+                               (if (->> item :org/tags seq)
+                                 "text-emerald-400"
+                                 "text-slate-400")]}
+                      (:name-str item)]
+
+                     [:span
+                      {:class [(if (->> item :org/tags seq)
+                                 "text-slate-400"
+                                 "text-red-400")]}
+                      (if (->> item :org/tags seq)
+                        (str " #" (->> item :org/tags (take 5) (clojure.string/join " #")))
+                        " No tags")]]
 
                     (when (-> item :org/links-to seq)
                       [:div
+                       {:class ["flex" "flex-col"]}
                        (for [link (-> item :org/links-to)]
-                         [:h4
-                          {:class ["font-mono"]}
-                          (:link/text link) " -> " (:org/name link)])])
+                         [:span
+                          {:class ["font-mono"
+                                   (if (:published item)
+                                     "text-emerald-400"
+                                     "text-red-400")]}
+                          (str
+                            (:link/text link) " -> " (:org/name link)
+                            (when-not (:published item) " (unpublished)"))])])
 
                     (when (-> item :org/urls seq)
                       [:div
+                       {:class ["flex" "flex-col"]}
                        (for [url (-> item :org/urls)]
                          [:h4
                           [:a {:href url :_target "blank" :class ["font-mono"]}
                            url]])])
 
-                    [:hr]
-                    ])])]))]))})
+                    [:div
+                     {:class ["border" "border-slate-600" "w-full"
+                              "mt-3" "mb-2"]}]])])]))]))})
 
 (defn select-org-keys [note]
   (select-keys note [:org/name :org/tags #_ :org/id #_ :org/short-path
