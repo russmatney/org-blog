@@ -48,6 +48,14 @@
      (when (seq tags)
        (->> tags (map #(str ":" %)) (string/join "\t"))))))
 
+(defn item->name-str
+  "Returns a seq of strings"
+  ([item] (item->name-str item nil))
+  ([item opts]
+   (let [opts    (merge {:id->link-uri uri/id->link-uri} opts)
+         [title] (org-crud.markdown/item->md-body item opts)]
+     title)))
+
 (defn item->md-content
   "Returns a seq of strings"
   ([item] (item->md-content item nil))

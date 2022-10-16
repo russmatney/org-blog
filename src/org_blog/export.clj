@@ -84,151 +84,166 @@
    '(fn [notes]
       (v/html
         [:div {:class ["w-full"]}
-           (for [[i note]
-                 (->> notes
-                      (sort-by (comp count :org/items) >)
-                      (map-indexed vector))]
-             ^{:key i}
-             (reagent.core/with-let [show-items (reagent.core/atom {})
-                                     show-links (reagent.core/atom {})]
-          [:div
-           {:class ["my-1"
-                    "flex" "flex-col" "space-x-4" "justify-center" "w-full"
-                    "px-4" "py-2"
-                    "border" "border-2" "border-emerald-600"
-                    "rounded"]}
-
-           ;; header counts date
-           [:div
-            {:class ["flex" "flex-row" "space-x-4" "justify-between" "w-full"]}
-
-            [:h4
-             [:button
-              {:class    ["text-emerald-500"
-                          "hover:text-emerald-300"]
-               :on-click (fn [_] (v/clerk-eval
-                                   `(org-blog.export/open-in-emacs!
-                                      ~(-> note :org/short-path))))}
-              (-> note :org/short-path)]]
-            [:span
-             {:class ["font-mono"]}
-             (str (-> note :org/items count) " items")]
-
-            [:span
-             {:class ["font-mono"]}
-             (str (->> note :all-tags count) " tags")]
-
-            [:span
-             {:class ["font-mono"]}
-             (str (->> note :all-links count) " links")]
-
-            [:h4
-             {:class ["text-slate-600" "font-mono" "ml-auto"]}
-             (-> note :last-modified
-                 str)]]
-
-           [:div
-            {:class ["flex" "flex-row" "space-x-4" "justify-between" "align-center"]}
-
-            ;; all-tags
-            [:div
-             [:span
-              {:class ["font-mono"]}
-              (str
-                (when (->> note :all-tags seq) "#")
-                (->> note :all-tags (take 5)
-                  (clojure.string/join "#")))]]
-
-            ;; actions
-            [:div
-             (when (-> note :org/items seq)
-               [:button
-                {:class    ["bg-amber-700" "hover:bg-amber-600"
-                            "text-slate-300" "font-bold"
-                            "py-2" "px-4" "m-1"
-                            "rounded"]
-                 :on-click (fn [_] (swap! show-items update i not))}
-                (if (@show-items i) "hide items" "show items")])
-
-             (when (-> note :all-links seq)
-               [:button
-                {:class    ["bg-green-700" "hover:bg-green-600"
-                            "text-slate-300" "font-bold"
-                            "py-2" "px-4" "m-1"
-                            "rounded"]
-                 :on-click (fn [_] (swap! show-links update i not))}
-                (if (@show-links i) "hide links" "show links")])
-
-             (when (not (:published note))
-               [:button
-                {:class    ["bg-blue-700" "hover:bg-blue-600"
-                            "text-slate-300" "font-bold"
-                            "py-2" "px-4" "m-1"
-                            "rounded"]
-                 :on-click (fn [_] (v/clerk-eval
-                                     `(org-blog.export/publish-note!
-                                        ~(-> note :org/short-path))))}
-                "publish"])
-
-             (when (:published note)
-               [:button
-                {:class    ["bg-red-800" "hover:bg-red-500"
-                            "text-slate-300" "font-bold"
-                            "py-2" "px-4" "m-1"
-                            "rounded"]
-                 :on-click (fn [_] (v/clerk-eval
-                                     `(org-blog.export/unpublish-note!
-                                        ~(-> note :org/short-path))))}
-                "unpublish"])]]
-
-           ;; links
-           (when (@show-links i)
+         (for [[i note] (->> notes
+                             (sort-by (comp count :org/items) >)
+                             (map-indexed vector))]
+           ^{:key i}
+           (reagent.core/with-let [show-items (reagent.core/atom {0 true})
+                                   show-links (reagent.core/atom {})]
              [:div
-              {:class ["border" "border-green-800"]}
-              (for [link (->> note :all-links)]
-                [:h4
+              {:class ["my-1"
+                       "flex" "flex-col" "space-x-4" "justify-center" "w-full"
+                       "px-4" "py-2"
+                       "border" "border-2" "border-emerald-600"
+                       "rounded"]}
+
+              ;; header counts date
+              [:div
+               {:class ["flex" "flex-row" "space-x-4" "justify-between" "w-full"]}
+
+               [:h4
+                [:button
+                 {:class    ["text-emerald-500"
+                             "hover:text-emerald-300"]
+                  :on-click (fn [_] (v/clerk-eval
+                                      `(org-blog.export/open-in-emacs!
+                                         ~(-> note :org/short-path))))}
+                 (-> note :org/short-path)]]
+               [:span
+                {:class ["font-mono"]}
+                (str (-> note :org/items count) " items")]
+
+               [:span
+                {:class ["font-mono"]}
+                (str (->> note :all-tags count) " tags")]
+
+               [:span
+                {:class ["font-mono"]}
+                (str (->> note :all-links count) " links")]
+
+               [:h4
+                {:class ["text-slate-600" "font-mono" "ml-auto"]}
+                (-> note :last-modified
+                    str)]]
+
+              [:div
+               {:class ["flex" "flex-row" "space-x-4" "justify-between" "align-center"]}
+
+               ;; all-tags
+               [:div
+                [:span
                  {:class ["font-mono"]}
-                 (:link/text link)
-                 " -> "
-                 (:org/name link)])])
+                 (str
+                   (when (->> note :all-tags seq) "#")
+                   (->> note :all-tags (take 5)
+                        (clojure.string/join "#")))]]
 
-           ;; items
-           (when (@show-items i)
-             [:div
-              {:class ["border" "border-amber-800"]}
-              (for [item (->> note :org/items)]
+               ;; actions
+               [:div
+                (when (-> note :org/items seq)
+                  [:button
+                   {:class    ["bg-amber-700" "hover:bg-amber-600"
+                               "text-slate-300" "font-bold"
+                               "py-2" "px-4" "m-1"
+                               "rounded"]
+                    :on-click (fn [_] (swap! show-items update i not))}
+                   (if (@show-items i) "hide items" "show items")])
+
+                (when (-> note :all-links seq)
+                  [:button
+                   {:class    ["bg-green-700" "hover:bg-green-600"
+                               "text-slate-300" "font-bold"
+                               "py-2" "px-4" "m-1"
+                               "rounded"]
+                    :on-click (fn [_] (swap! show-links update i not))}
+                   (if (@show-links i) "hide links" "show links")])
+
+                (when (not (:published note))
+                  [:button
+                   {:class    ["bg-blue-700" "hover:bg-blue-600"
+                               "text-slate-300" "font-bold"
+                               "py-2" "px-4" "m-1"
+                               "rounded"]
+                    :on-click (fn [_] (v/clerk-eval
+                                        `(org-blog.export/publish-note!
+                                           ~(-> note :org/short-path))))}
+                   "publish"])
+
+                (when (:published note)
+                  [:button
+                   {:class    ["bg-red-800" "hover:bg-red-500"
+                               "text-slate-300" "font-bold"
+                               "py-2" "px-4" "m-1"
+                               "rounded"]
+                    :on-click (fn [_] (v/clerk-eval
+                                        `(org-blog.export/unpublish-note!
+                                           ~(-> note :org/short-path))))}
+                   "unpublish"])]]
+
+              ;; links
+              (when (@show-links i)
                 [:div
-                 [:h4
-                  {:class ["font-mono"]}
-                  (:org/name item)
+                 {:class ["border" "border-green-800"]}
+                 (for [link (->> note :all-links)]
+                   [:h4
+                    {:class ["font-mono"]}
+                    (:link/text link)
+                    " -> "
+                    (:org/name link)])])
 
-                  [:span
-                  {:class ["text-slate-500"]}
-                   (str
-                     " " (when (->> item :org/tags seq) "#")
-                     (->> item :org/tags (take 5) (clojure.string/join "#")))]]
-
-                 (when (-> item :org/links-to seq)
+              ;; items
+              (when (@show-items i)
+                [:div
+                 {:class ["border" "border-amber-800"]}
+                 (for [item (->> note :org/items)]
                    [:div
-                    (for [link (-> item :org/links-to)]
-                      [:h4
-                       {:class ["font-mono"]}
-                       " -> " (:link/text link)])])
+                    [:h4
+                     {:class ["font-mono"]}
+                     (:name-str item)
 
-                 (when (-> item :org/urls seq)
-                   [:div
-                    (for [url (-> item :org/urls)]
-                      [:h4
-                       [:a {:href  url :_target "blank" :class ["font-mono"]}
+                     [:span
+                      {:class ["text-slate-500"]}
+                      (str
+                        " " (when (->> item :org/tags seq) "#")
+                        (->> item :org/tags (take 5) (clojure.string/join "#")))]]
+
+                    (when (-> item :org/links-to seq)
+                      [:div
+                       (for [link (-> item :org/links-to)]
+                         [:h4
+                          {:class ["font-mono"]}
+                          (:link/text link) " -> " (:org/name link)])])
+
+                    (when (-> item :org/urls seq)
+                      [:div
+                       (for [url (-> item :org/urls)]
+                         [:h4
+                          [:a {:href url :_target "blank" :class ["font-mono"]}
                            url]])])
 
-                 [:hr]
-                 ])])]))]))})
+                    [:hr]
+                    ])])]))]))})
 
 (defn select-org-keys [note]
   (select-keys note [:org/name :org/tags #_ :org/id #_ :org/short-path
                      #_ :org/links-to :org/level :org/body-string]))
 
+(defn merge-item-into-link [{:keys [link/id] :as link}]
+  (merge link ((db/notes-by-id) id)))
+
+(defn decorate-note [note]
+  (-> note
+      (assoc :published (notes/published-id? (:org/id note)))
+      (assoc :all-tags (item/item->all-tags note))
+      (assoc :all-links (->> (item/item->all-links note)
+                             (map merge-item-into-link)))
+      (assoc :last-modified
+             (some->> note :file/last-modified str
+                      (dates/parse-time-string)
+                      (t/format (t/formatter "MMM d YY" ))))
+      (assoc :name-str (item/item->name-str note))
+      (update :org/links-to (fn [items] (map merge-item-into-link items)))
+      (update :org/items (fn [items] (map decorate-note items)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
@@ -237,25 +252,12 @@
 
 ^{::clerk/no-cache true
   ::clerk/viewer   note-publish-buttons
-  ::clerk/width :wide}
-(->> (recent-notes)
-     (map (fn [note]
-            (-> note
-                (assoc :published (notes/published-id? (:org/id note)))
-                (assoc :all-tags (item/item->all-tags note))
-                (assoc :all-links (->> (item/item->all-links note)
-                                       (map (fn [{:keys [link/id] :as link}]
-                                              (merge link ((db/notes-by-id) id))))))
-                (assoc :last-modified
-                       (->>
-                         note
-                         :file/last-modified
-                         str
-                         (dates/parse-time-string)
-                         (t/format
-                           (t/formatter "MMM d YY" )))))))
-     (sort-by :published)
-     (into []))
+  ::clerk/width    :wide}
+(->>
+  (recent-notes)
+  (map decorate-note)
+  (sort-by :published)
+  (into []))
 
 ;; ### linked items
 
