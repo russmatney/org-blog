@@ -40,19 +40,45 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn collect-linked-ids
-  "Collects ref (normal) links and backlinks for the notes in `published-notes`.
-  Returns a set of uuids."
+  "Collects ids that the published notes link to."
   ([] (collect-linked-ids nil))
   ([_opts]
-   (let [all-items        (->> (notes/published-notes) (mapcat org-crud/nested-item->flattened-items))
-         all-link-ids     (->> all-items (mapcat :org/links-to) (map :link/id) (into #{}))
-         all-item-ids     (->> all-items (map :org/id) (remove nil?) (into #{}))
-         all-backlink-ids (->> all-item-ids (mapcat db/ids-linked-from) (into #{}))]
-     (->> (concat all-backlink-ids all-link-ids) (into #{})))))
+   (let [all-items (->> (notes/published-notes) (mapcat org-crud/nested-item->flattened-items))]
+     (->> all-items (mapcat :org/links-to) (map :link/id)))))
+
+(defn collect-backlinked-ids
+  "Collects ids for all notes that link to the published notes."
+  ([] (collect-linked-ids nil))
+  ([_opts]
+   (let [all-items    (->> (notes/published-notes) (mapcat org-crud/nested-item->flattened-items))
+         all-item-ids (->> all-items (map :org/id)
+                           ;; we might be dropping inner org item links here
+                           (remove nil?))]
+     (->> all-item-ids (mapcat db/ids-linked-from)))))
+
+(comment
+  (->>
+    (collect-linked-ids)
+    frequencies
+    (sort-by second >))
+  (->>
+    (collect-backlinked-ids)
+    frequencies))
 
 ^{::clerk/no-cache true}
 (def linked-items (->> (collect-linked-ids)
-                       (map (db/notes-by-id))))
+                       frequencies
+                       (sort-by second >)
+                       (map (fn [[id ct]]
+                              (assoc ((db/notes-by-id) id) :linked-count ct)))))
+
+^{::clerk/no-cache true}
+(def backlinked-items (->> (collect-backlinked-ids)
+                           frequencies
+                           (sort-by second >)
+                           (map (fn [[id ct]]
+                                  (assoc ((db/notes-by-id) id)
+                                         :backlinked-count ct)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ actions
@@ -88,12 +114,14 @@
                              (sort-by (comp count :org/items) >)
                              (map-indexed vector))]
            ^{:key i}
-           (reagent.core/with-let [show-items (reagent.core/atom {0 true})
+           (reagent.core/with-let [show-items (reagent.core/atom {} #_{0 true})
                                    show-links (reagent.core/atom {})]
              [:div
               {:class ["flex" "flex-col" "space-x-4" "justify-center" "w-full"
                        "px-4" "py-2" "my-1"
-                       "border" "border-2" "border-emerald-600"
+                       "border" "border-2" (if (:published note)
+                                             "border-emerald-600"
+                                             "border-slate-600")
                        "rounded"]}
 
               ;; header counts date
@@ -107,9 +135,22 @@
                                       `(org-blog.export/open-in-emacs!
                                          ~(-> note :org/short-path))))}
                  (-> note :org/short-path)]]
+
+               (when (:linked-count note)
+                 [:span
+                  {:class ["font-mono"]}
+                  (str (->> note :linked-count) " linked-to")])
+
+               (when (:backlinked-count note)
+                 [:span
+                  {:class ["font-mono"]}
+                  (str (->> note :backlinked-count) " backlinked-to")])
+
                [:span
                 {:class ["font-mono"]}
-                (str (-> note :org/items count) " items")]
+                (str
+                  (->> note :org/items (filter (comp seq :org/tags)) count)
+                  "/" (-> note :org/items count) " items")]
 
                [:span
                 {:class ["font-mono"]}
@@ -117,7 +158,9 @@
 
                [:span
                 {:class ["font-mono"]}
-                (str (->> note :all-links count) " links")]
+                (str
+                  (->> note :all-links (filter :published) count)
+                  "/" (->> note :all-links count) " links")]
 
                [:h4
                 {:class ["text-slate-600" "font-mono" "ml-auto"]}
@@ -282,18 +325,57 @@
   ::clerk/width    :wide}
 (->>
   (recent-notes)
+  ;; already sorted by recency
+  (take 5)
   (map decorate-note)
   (sort-by :published)
   (into []))
 
-;; ### linked items
+;; ### unpublished, linked items
 
 ^{::clerk/no-cache true
-  ::clerk/viewer   note-publish-buttons}
+  ::clerk/viewer   note-publish-buttons
+  ::clerk/width    :wide}
 (->> linked-items
-     (map (fn [note] (assoc note :published (notes/published-id? (:org/id note)))))
+     (remove (fn [note] (notes/published-id? (:org/id note))))
+     (take 5)
+     (map decorate-note)
      (sort-by :published)
      (into []))
+
+;; ### unpublished, backlinked items
+
+^{::clerk/no-cache true
+  ::clerk/viewer   note-publish-buttons
+  ::clerk/width    :wide}
+(->> backlinked-items
+     (remove (fn [note] (notes/published-id? (:org/id note))))
+     (take 5)
+     (map decorate-note)
+     (sort-by :published)
+     (into []))
+
+
+;; ### frequent tags
+(clerk/vl
+  {:$schema     "https//vega.github.io/schema/vega-lite/v5.json"
+   :width       650
+   :height      500
+   :description "A simple donut chart with embedded data."
+   :data        {:values (->> (notes/published-notes)
+                              (mapcat item/item->all-tags)
+                              frequencies
+                              (sort-by second >)
+                              (map (fn [[v ct]]
+                                     {:category (str v (when (> ct 2) (str " (" ct ")")))
+                                      :value    ct}))
+                              (into []))}
+   ;; :layer       [{:mark {:type "arc" :outerRadius 180}}
+   ;;               {:mark     {:type "text" :radius 210}
+   ;;                :encoding {:text {:field "category" :type "nominal"}}}]
+   :mark        {:type "arc" :innerRadius 50 :tooltip true}
+   :encoding    {:theta {:field "value" :type "quantitative" :stack "normalize"}
+                 :color {:field "category" :type "nominal"}}})
 
 
 ;; ### published items

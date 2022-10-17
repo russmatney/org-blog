@@ -31,7 +31,7 @@
           (note->uri note)
 
           (do
-            (println "[INFO: missing link]: skipping link to unpublished note: "
-                     (:org/name note))
+            #_(println "[INFO: missing link]: skipping link to unpublished note: "
+                       (:org/name note))
             ;; returning nil here to signal the link's removal
             nil))))))
