@@ -2,18 +2,71 @@
  {"garden/some-note.org"
   {:org/short-path "garden/some-note.org", :with/data :hi/there}},
  :notes
- {"daily/2022-10-03.org" {:org/short-path "daily/2022-10-03.org"},
+ {"daily/2022-10-17.org" {:org/short-path "daily/2022-10-17.org"},
+  "garden/clawe_mx.org" {:org/short-path "garden/clawe_mx.org"},
+  "garden/humans_who_make_games_podcast.org"
+  {:org/short-path "garden/humans_who_make_games_podcast.org"},
+  "daily/2022-10-03.org" {:org/short-path "daily/2022-10-03.org"},
   "garden/async_mario_kart.org"
   {:org/short-path "garden/async_mario_kart.org"},
+  "garden/neil.org" {:org/short-path "garden/neil.org"},
+  "garden/dungeon_crawler.org"
+  {:org/short-path "garden/dungeon_crawler.org"},
+  "garden/camera_control.org"
+  {:org/short-path "garden/camera_control.org"},
+  "garden/strangeloop.org" {:org/short-path "garden/strangeloop.org"},
+  "garden/procedural_level_generation.org"
+  {:org/short-path "garden/procedural_level_generation.org"},
   "daily/2022-10-08.org" {:org/short-path "daily/2022-10-08.org"},
+  "workspaces/doctor.org" {:org/short-path "workspaces/doctor.org"},
   "daily/2022-10-14.org" {:org/short-path "daily/2022-10-14.org"},
   "daily/2022-10-13.org" {:org/short-path "daily/2022-10-13.org"},
   "garden/tauri_as_a_simple_native_web_view.org"
   {:org/short-path "garden/tauri_as_a_simple_native_web_view.org"},
+  "garden/feedback_loops.org"
+  {:org/short-path "garden/feedback_loops.org"},
+  "garden/clerk_clojure_tool.org"
+  {:org/short-path "garden/clerk_clojure_tool.org"},
+  "garden/org_blog.org" {:org/short-path "garden/org_blog.org"},
   "garden/dropping_bananas.org"
   {:org/short-path "garden/dropping_bananas.org"},
   "daily/2022-10-05.org" {:org/short-path "daily/2022-10-05.org"},
+  "daily/2022-10-12.org" {:org/short-path "daily/2022-10-12.org"},
+  "garden/what_is_capture.org"
+  {:org/short-path "garden/what_is_capture.org"},
+  "garden/ricing_your_distro.org"
+  {:org/short-path "garden/ricing_your_distro.org"},
   "workspaces/clawe.org" {:org/short-path "workspaces/clawe.org"},
+  "garden/clawe.org" {:org/short-path "garden/clawe.org"},
+  "garden/customize_spotify_via_spicetify_cli.org"
+  {:org/short-path "garden/customize_spotify_via_spicetify_cli.org"},
+  "garden/gpg_setup.org" {:org/short-path "garden/gpg_setup.org"},
+  "garden/emacs.org" {:org/short-path "garden/emacs.org"},
+  "daily/2022-09-19.org" {:org/short-path "daily/2022-09-19.org"},
+  "workspaces/chess.org" {:org/short-path "workspaces/chess.org"},
+  "garden/russmatney_clawe.org"
+  {:org/short-path "garden/russmatney_clawe.org"},
+  "garden/clojure.org" {:org/short-path "garden/clojure.org"},
   "garden/blog_about.org" {:org/short-path "garden/blog_about.org"},
+  "garden/org_mode.org" {:org/short-path "garden/org_mode.org"},
+  "garden/things_i_like_in_games.org"
+  {:org/short-path "garden/things_i_like_in_games.org"},
+  "garden/games_i_love.org"
+  {:org/short-path "garden/games_i_love.org"},
+  "garden/dino.org" {:org/short-path "garden/dino.org"},
+  "garden/ink.org" {:org/short-path "garden/ink.org"},
+  "garden/russmatney_org_crud.org"
+  {:org/short-path "garden/russmatney_org_crud.org"},
   "daily/2022-10-11.org" {:org/short-path "daily/2022-10-11.org"},
-  "daily/2022-10-10.org" {:org/short-path "daily/2022-10-10.org"}}}
+  "garden/godot.org" {:org/short-path "garden/godot.org"},
+  "garden/cider_clojure.org"
+  {:org/short-path "garden/cider_clojure.org"},
+  "garden/til.org" {:org/short-path "garden/til.org"},
+  "garden/yabai.org" {:org/short-path "garden/yabai.org"},
+  "daily/2022-10-10.org" {:org/short-path "daily/2022-10-10.org"},
+  "garden/rofi.org" {:org/short-path "garden/rofi.org"},
+  "workspaces/ralphie.org" {:org/short-path "workspaces/ralphie.org"},
+  "garden/game_ideas.org" {:org/short-path "garden/game_ideas.org"},
+  "garden/interactive_repl_driven_development.org"
+  {:org/short-path "garden/interactive_repl_driven_development.org"},
+  "garden/pixels.org" {:org/short-path "garden/pixels.org"}}}

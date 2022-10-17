@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html class="overflow-hidden min-h-screen"><head><meta charset="UTF-8"><meta content="width=device-width, initial-scale=1" name="viewport"><script src="https://cdn.tailwindcss.com?plugins=typography" type="text/javascript"></script><script>tailwind.config = {
+  darkMode: "class",
+  content: ["./public/build/index.html", "./public/build/**/*.html", "./build/viewer.js"],
+  safelist: ['dark'],
+  theme: {
+    extend: {},
+    fontFamily: {
+      sans: ["Fira Sans", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+      serif: ["PT Serif", "serif"],
+      mono: ["Fira Mono", "monospace"]
+    }
+  },
+  variants: {
+    extend: {},
+  },
+  plugins: [],
+}
+</script><style type="text/tailwindcss">@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-size: 18px;
+  }
+  @media (max-width: 600px) {
+    html {
+      font-size: 16px;
+    }
+  }
+  .font-condensed { font-family: "Fira Sans Condensed", sans-serif; }
+  .font-inter     { font-family: "Inter", sans-serif; }
+  body {
+    @apply font-serif antialiased text-gray-900 sm:overscroll-y-none;
+  }
+  code, .code {
+    @apply font-mono text-sm text-gray-900 bg-slate-50 px-0.5 py-px rounded dark:bg-gray-800;
+  }
+  code::before, code::after { @apply content-none !important; }
+  h1, h3, h4, h5, h6 {
+    @apply font-condensed font-bold mt-8 first:mt-0;
+  }
+  h2 {
+    /*We cannot collapse margins due to nesting but we want to*/
+    /*keep the h2’s large margin visible*/
+    @apply font-condensed font-bold mt-8 first:mt-2;
+  }
+  h1 { @apply text-4xl; }
+  h2 { @apply text-3xl; }
+  h3 { @apply text-2xl; }
+
+  button { @apply focus:outline-none; }
+  strong { @apply font-bold; }
+  em     { @apply italic; }
+  pre    { @apply m-0 font-mono; }
+}
+
+/* Compatibility */
+/* --------------------------------------------------------------- */
+/* TODO: Verify which colors are in use and replace with Tailwind
+   colors accordingly. Move Nj-specific styles out of here. */
+
+:root {
+  --teal-color: #31afd0;
+  --dark-teal-color: #095960;
+  --near-black-color: #2e2e2c;
+  --red-color: #d64242;
+  --dark-blue-color: #1f2937;
+  --dark-blue-60-color: rgba(28, 42, 56, 0.6);
+  --gray-panel-color: rgba(239, 241, 245, 1.000);
+  --brand-color: var(--dark-blue-color);
+  --link-color: #5046e4;
+  --command-bar-selected-color: var(--teal-color);
+}
+
+.serif      { @apply font-serif; }
+.sans-serif { @apply font-sans; }
+.monospace  { @apply font-mono; }
+.inter      { @apply font-inter; }
+
+.border-color-teal { border-color: var(--dark-teal-color); }
+.teal { color: var(--teal-color); }
+.bg-dark-blue { background: var(--dark-blue-color); }
+.bg-dark-blue-60 { background: rgba(28, 42, 56, 0.6); }
+.bg-gray-panel { background: var(--gray-panel-color); }
+.text-dark-blue  { color: var(--dark-blue-color); }
+.text-dark-blue-60 { color: var(--dark-blue-60-color); }
+.border-dark-blue-30 { border-color: rgba(28, 42, 56, 0.6); }
+.text-brand { color: var(--dark-blue-color); }
+.bg-brand { background: var(--dark-blue-color); }
+.text-selected { color: white; }
+.red { color: var(--red-color); }
+
+/* Disclose Button */
+/* --------------------------------------------------------------- */
+
+.disclose {
+  @apply content-none border-solid cursor-pointer inline-block relative mr-[3px] top-[-2px] transition-all;
+  border-color: var(--near-black-color) transparent;
+  border-width: 6px 4px 0;
+}
+.disclose:hover {
+  border-color: var(--near-black-color) transparent;
+}
+.dark .disclose,
+.dark .disclose:hover {
+  border-color: white transparent;
+}
+.disclose.collapsed {
+  @apply rotate-[-90deg];
+}
+
+/* Layout */
+/* --------------------------------------------------------------- */
+
+.page {
+  @apply max-w-5xl mx-auto px-12 box-border flex-shrink-0;
+}
+.max-w-prose { @apply max-w-[46rem] !important; }
+.max-w-wide  { @apply max-w-3xl !important; }
+
+/* List Styles */
+/* --------------------------------------------------------------- */
+
+.task-list-item + .task-list-item,
+.viewer-markdown ul ul {
+  @apply mt-1 mb-0;
+}
+
+/* compact TOC */
+.viewer-markdown .toc ul {
+  list-style: none;
+  @apply my-1;
+}
+
+/* Code Viewer */
+/* --------------------------------------------------------------- */
+
+.viewer-code {
+  @apply font-mono bg-slate-100 rounded-sm text-sm overflow-x-auto dark:bg-gray-800;
+}
+.viewer-code .cm-content {
+  @apply py-4 px-8;
+}
+@media (min-width: 960px){
+  .viewer-notebook .viewer-code .cm-content {
+    @apply py-4 pl-12;
+  }
+}
+/* Don’t show focus outline when double-clicking cell in Safari */
+.cm-scroller { @apply focus:outline-none; }
+
+/* Syntax Highlighting */
+/* --------------------------------------------------------------- */
+
+.inspected-value { @apply text-xs font-mono leading-[1.25rem]; }
+.cmt-strong, .cmt-heading { @apply font-bold; }
+.cmt-italic, .cmt-emphasis { @apply italic; }
+.cmt-strikethrough { @apply line-through; }
+.cmt-link { @apply underline; }
+.untyped-value { @apply whitespace-nowrap; }
+
+.cm-editor, .cmt-default, .viewer-result {
+  @apply text-slate-800 dark:text-slate-300;
+}
+.cmt-keyword {
+  @apply text-purple-800 dark:text-pink-400;
+}
+.cmt-atom, .cmt-bool, .cmt-url, .cmt-contentSeparator, .cmt-labelName {
+  @apply text-blue-900 dark:text-blue-300;
+}
+.cmt-inserted, .cmt-literal {
+  @apply text-emerald-700 dark:text-emerald-200;
+}
+.cmt-string, .cmt-deleted {
+  @apply text-rose-700 dark:text-sky-300;
+}
+.cmt-italic.cmt-string {
+  @apply dark:text-sky-200;
+}
+.cmt-regexp, .cmt-escape {
+  @apply text-orange-500 dark:text-orange-300;
+}
+.cmt-variableName {
+  @apply text-blue-800 dark:text-sky-300;
+}
+.cmt-typeName, .cmt-namespace {
+  @apply text-emerald-600 dark:text-emerald-300;
+}
+.cmt-className {
+  @apply text-teal-600 dark:text-teal-200;
+}
+.cmt-macroName {
+  @apply text-teal-700 dark:text-teal-200;
+}
+.cmt-propertyName {
+  @apply text-blue-700 dark:text-blue-200;
+}
+.cmt-comment {
+  @apply text-slate-500 dark:text-slate-400;
+}
+.cmt-meta {
+  @apply text-slate-600 dark:text-slate-400;
+}
+.cmt-invalid {
+  @apply text-red-500 dark:text-red-300;
+}
+
+.result-data {
+  @apply font-mono text-sm overflow-x-auto whitespace-nowrap leading-normal;
+}
+.result-data::-webkit-scrollbar, .path-nav::-webkit-scrollbar {
+  @apply h-0;
+}
+.result-data-collapsed {
+  @apply whitespace-nowrap;
+}
+.result-data-field {
+  @apply ml-4 whitespace-nowrap;
+}
+.result-data-field-link{
+  @apply ml-4 whitespace-nowrap cursor-pointer;
+}
+.result-data-field-link:hover {
+  @apply text-black bg-black/5;
+}
+.result-text-empty {
+  color: rgba(0,0,0,.3);
+}
+.browsify-button:hover {
+  box-shadow: -2px 0 0 2px #edf2f7;
+}
+
+/* Prose */
+/* --------------------------------------------------------------- */
+
+.viewer-notebook,
+.viewer-markdown {
+  @apply prose
+    dark:prose-invert
+    prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
+    dark:prose-a:text-blue-300
+    prose-p:mt-4 prose-p:leading-snug
+    prose-ol:mt-4 prose-ol:mb-6 prose-ol:leading-snug
+    prose-ul:mt-4 prose-ul:mb-6 prose-ul:leading-snug
+    prose-blockquote:mt-4 prose-blockquote:leading-snug
+    prose-hr:mt-6 prose-hr:border-t-2 prose-hr:border-solid prose-hr:border-slate-200
+    prose-figure:mt-4
+    prose-figcaption:mt-2 prose-figcaption:text-xs
+    prose-headings:mb-4
+    prose-table:mt-0
+    prose-th:mb-0
+    prose-img:my-0
+    prose-code:font-medium prose-code:bg-slate-100
+    max-w-none;
+}
+.viewer-markdown blockquote p:first-of-type:before,
+.viewer-markdown blockquote p:last-of-type:after {
+  @apply content-none;
+}
+
+/* Images */
+/* --------------------------------------------------------------- */
+
+
+/* Todo Lists */
+/* --------------------------------------------------------------- */
+
+.contains-task-list {
+  @apply pl-6 list-none;
+}
+.contains-task-list input[type="checkbox"] {
+  @apply appearance-none h-4 w-4 rounded border border-slate-200 relative mr-[0.3rem] ml-[-1.5rem] top-[0.15rem];
+}
+.contains-task-list input[type="checkbox"]:checked {
+  @apply border-indigo-600 bg-indigo-600 bg-no-repeat bg-contain;
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+}
+
+/* Markdown TOC */
+/* --------------------------------------------------------------- */
+
+.viewer-markdown .toc      { @apply mt-4; }
+.viewer-markdown h1 + .toc { @apply mt-8; }
+
+.viewer-markdown .toc h1,
+.viewer-markdown .toc h2,
+.viewer-markdown .toc h3,
+.viewer-markdown .toc h4,
+.viewer-markdown .toc h5,
+.viewer-markdown .toc h6 {
+  @apply text-base text-indigo-600 font-sans my-0;
+}
+.viewer-markdown .toc a {
+  @apply text-indigo-600 font-normal no-underline hover:underline;
+}
+.viewer-markdown .toc li    { @apply m-0; }
+.viewer-markdown .toc ul ul { @apply pl-4; }
+
+/* Notebook Spacing */
+/* --------------------------------------------------------------- */
+
+.viewer-notebook { @apply py-16; }
+#clerk-static-app .viewer-notebook { @apply pt-[0.8rem] pb-16; }
+.viewer-markdown *:first-child:not(.viewer-code):not(li):not(h2) { @apply mt-0; }
+/*.viewer + .viewer { @apply mt-6; }*/
+.viewer + .viewer-result { @apply mt-0; }
+.viewer-code + .viewer-result { @apply mt-3; }
+.viewer-markdown + .viewer-markdown { @apply mt-0; }
+
+/* Sidenotes */
+/* --------------------------------------------------------------- */
+
+.sidenote-ref {
+  @apply top-[-3px] inline-flex justify-center items-center w-[18px] h-[18px]
+    rounded-full bg-slate-100 border border-slate-300 hover:bg-slate-200 hover:border-slate-300
+    m-0 ml-[4px] cursor-pointer;
+}
+.sidenote {
+  @apply hidden float-left clear-both mx-[2.5%] my-4 text-xs relative w-[95%];
+}
+.sidenote-ref.expanded + .sidenote {
+  @apply block;
+}
+@media (min-width: 860px) {
+  .sidenote-ref {
+    @apply top-[-0.5em] w-auto h-auto inline border-0 bg-transparent m-0 pointer-events-none;
+  }
+  .sidenote sup { @apply inline; }
+  .viewer-markdown .contains-sidenotes p { @apply max-w-[65%]; }
+  .viewer-markdown p .sidenote {
+    @apply mr-[-54%] mt-[0.2rem] w-1/2 float-right clear-right relative block;
+  }
+}
+.viewer-code + .viewer:not(.viewer-markdown):not(.viewer-code):not(.viewer-code-folded),
+.viewer-code-folded + .viewer:not(.viewer-markdown):not(.viewer-code):not(.viewer-code-folded),
+.viewer-result + .viewer-result {
+  @apply mt-2;
+}
+.viewer-code + .viewer-code-folded {
+  @apply mt-4;
+}
+.viewer-result {
+  @apply leading-tight mb-6;
+}
+.viewer-result figure {
+  @apply mt-0 !important;
+}
+@media (min-width: 768px) {
+  .devcard-desc > div {
+    @apply max-w-full m-0;
+  }
+}
+
+/* Command Palette */
+/* --------------------------------------------------------------- */
+
+.nj-commands-input {
+  @apply bg-transparent text-white;
+}
+.nj-context-menu-item:hover:not([disabled]) {
+  @apply cursor-pointer;
+  background-color: rgba(255,255,255,.14);
+}
+
+/* Devdocs */
+/* --------------------------------------------------------------- */
+
+.logo, .logo-white {
+  @apply block indent-[-999em];
+  background: url(/images/nextjournal-logo.svg) center center no-repeat;
+}
+.devdocs-body {
+  @apply font-inter;
+}
+
+/* Workarounds */
+/* --------------------------------------------------------------- */
+
+/* Fixes vega viewer resizing into infinity */
+.vega-embed .chart-wrapper { @apply h-auto !important; }
+/* fixes fraction separators being overridden by tw’s border-color */
+.katex * { @apply border-black; }
+</style><script src="https://storage.googleapis.com/nextjournal-cas-eu/assets/28ktYzexRpt9ZsXvxpxDRnu497pkEeZjEvXB1NMVzfEoPEgsbQXEyM3j5CEucNccte6QGnX1qQxHL2KHfoBRG2FN-viewer.js" type="text/javascript"></script><link href="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css" rel="stylesheet" type="text/css"><link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&amp;family=Fira+Mono:wght@400;700&amp;family=Fira+Sans+Condensed:ital,wght@0,700;1,700&amp;family=Fira+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&amp;family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet" type="text/css"></head><body class="dark:bg-gray-900"><div class="flex flex-col items-center text-gray-900 dark:text-white"><div class="flex flex-row items-center max-w-prose w-full px-8 py-2"><h3 class="font-mono">DangerRuss Notes</h3><div class="ml-auto flex flex-row space-x-4"><div><h4><a class="font-mono hover:underline cursor-pointer" href="/index.html">all</a></h4></div><div><h4><a class="font-mono hover:underline cursor-pointer" href="/note/blog_about.html">about</a></h4></div></div></div><hr></div><div id="clerk"></div><script>let viewer = nextjournal.clerk.sci_viewer
+let state = "{:doc {:nextjournal/viewer {:name :clerk/notebook, :render-fn #viewer-fn v/notebook-viewer}, :nextjournal/value {:blocks [{:nextjournal/viewer {:name :html-, :render-fn #viewer-fn v/html}, :nextjournal/value [:div.viewer-markdown]} {:nextjournal/viewer {:name :clerk/result, :render-fn #viewer-fn v/result-viewer}, :nextjournal/value {:nextjournal/edn \"{:nextjournal/viewer {:name :html-, :render-fn #viewer-fn v/html}, :nextjournal/value [:div.viewer-markdown [\\\"h1\\\" {:id \\\"game%20ideas\\\"} [:span \\\"game ideas\\\"]]], :path [], :nextjournal/expanded-at {[] false, nil false}}\", :nextjournal/viewer {:name :html-}}, :path []} {:nextjournal/viewer {:name :clerk/result, :render-fn #viewer-fn v/result-viewer}, :nextjournal/value {:nextjournal/edn \"{:nextjournal/viewer {:name :html-, :render-fn #viewer-fn v/html}, :nextjournal/value [:div.viewer-markdown [:p [:span \\\"Pretty raw for now.\\\"]] [:ul [:li [:<> [:span \\\"See also: beat em up boss battles\\\"]]] [:li [:<> [:span \\\"See also: game story ideas\\\"]]] [:li [:<> [:span \\\"See also: Moon Game Ideas\\\"]]]] [\\\"h1\\\" {:id \\\"coming%20together\\\"} [:span \\\"coming together\\\"]] [:p [:span \\\"The Hitchhiker's Guide to the Beat Em Up\\\"]] [\\\"h1\\\" {:id \\\"fresh%20ideas\\\"} [:span \\\"fresh ideas\\\"]] [\\\"h2\\\" {:id \\\"boss%20to%20boss\\\"} [:span \\\"boss to boss\\\"]] [:ul [:li [:<> [:span \\\"choose which way to play, which guys to fight across\\\"]]] [:li [:<> [:span \\\"start at your head quarters, fight through to theirs\\\"]]]] [\\\"h2\\\" {:id \\\"driving%20game\\\"} [:span \\\"driving game\\\"]] [:ul [:li [:<> [:span \\\"avoid the enemies\\\"]]] [:li [:<> [:span \\\"driver's POV\\\"]]] [:li [:<> [:span \\\"wario-ware style\\\"]]] [:li [:<> [:span \\\"protect your co-pilot\\\"]]]] [\\\"h2\\\" {:id \\\"walk%20the%20choices\\\"} [:span \\\"walk the choices\\\"]] [:ul [:li [:<> [:span \\\"nice way to integrate ink-choices with beat em up controller/walking\\\"]]]] [\\\"h2\\\" {:id \\\"ink%20%3C%3E%20chess%20story%20telling\\\"} [:span \\\"ink <> chess story telling\\\"]] [\\\"h2\\\" {:id \\\"on-screen%20choices%20(keyboard%20based)%20for%20slow-mo%20fighting%20mechanics\\\"} [:span \\\"on-screen choices (keyboard based) for slow-mo fighting mechanics\\\"]] [:ul [:li [:<> [:span \\\"resident-evil meets dodge/block/parry triangles\\\"]]]] [\\\"h1\\\" {:id \\\"Pentominoes%20(Puzzle)\\\"} [:span \\\"Pentominoes (Puzzle)\\\"]] [\\\"h1\\\" {:id \\\"Chess%20Pok%C3%A9mon\\\"} [:span \\\"Chess Pokémon\\\"]] [:p [:span \\\"Chess Pokémon\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"You can only use the pieces that you took\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"And those who survive\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"The prisoners join you in the next game\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Or should it be the ones you didn't take?\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"No, too royal to the crown\\\"]] [:p [:span \\\"Scarcity of resources\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Like a chess rogue like\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Like Void blasters\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"But with cereal boxes\\\"]] [:p [:span \\\"Prototype it in reframe\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Then unity time\\\"]] [\\\"h1\\\" {:id \\\"Chess%20game\\\"} [:span \\\"Chess game\\\"]] [:p [:span \\\"Chess game\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Fighting\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"fire emblem\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Zelda - top down\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Streets of rage\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Street fighter\\\"]] [:p [:span \\\"Chess prisoners\\\"]] [:p [:span \\\"You play with whatever you gather\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Like Void Bastards\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"As you take pieces, they become yours\\\"]] [:p [:span \\\"Life of bob\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"As you eat the cereal, you get to keep the toy\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"It's like a dungeon\\\"]] [:p [:span \\\"You need to find the toy that opens the door in the other box\\\"]] [:p [:span \\\"Make the pacman chess game!\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"It'll bring this stuff to life!\\\"]] [\\\"h1\\\" {:id \\\"chess%20+%20fishy%20clone\\\"} [:span \\\"chess + fishy clone\\\"]] [:p [:span \\\"chess + fishy clone\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"start as a little pawn\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"go around picking up all the little ones\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"soon it's you and some other fat queens\\\"]] [\\\"h1\\\" {:id \\\"weather\\\"} [:span \\\"weather\\\"]] [:p [:span \\\"rain, snow, friction, lightning\\\"]] [\\\"h1\\\" {:id \\\"time\\\"} [:span \\\"time\\\"]] [:p [:span \\\"night, day, lighting\\\"]] [\\\"h1\\\" {:id \\\"dungeon/maze%20generation%20(and%20connecting%20levels%20on%20a%20path?)\\\"} [:span \\\"dungeon/maze generation (and connecting levels on a path?)\\\"]] [:p [:a {:href \\\"https://github.com/SiENcE/astray\\\"} [:span \\\"https://github.com/SiENcE/astray\\\"]]] [\\\"h1\\\" {:id \\\"unlockables:%20ugly-sweater%20mode%20that%20adds%20big%20dithering%20everywhere\\\"} [:span \\\"unlockables: ugly-sweater mode that adds big dithering everywhere\\\"]] [\\\"h1\\\" {:id \\\"todo:%20street%20fighter%20tetris%20beat%20up%20the%20car%20levels\\\"} [:span \\\"todo: street fighter tetris beat up the car levels\\\"]] [:p [:span \\\"todo: street fighter tetris beat up the car levels\\\"]] [\\\"h1\\\" {:id \\\"Chess%20rpg\\\"} [:span \\\"Chess rpg\\\"]] [:p [:span \\\"Chess rpg\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Make the game i wish fire emblem was\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Just like stardew valley and harvest moon\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Add chess and beat em ups\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"And pull fire emblem's battle system\\\"]] [:p [:span \\\"1 month jam\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Game-lie\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"July theme\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Maynowrimo\\\"]] [\\\"h1\\\" {:id \\\"'controls'%20views\\\"} [:span \\\"'controls' views\\\"]] [\\\"h2\\\" {:id \\\"outworlder\\\"} [:span \\\"outworlder\\\"]] [:p [:a {:href \\\"https://cdn.discordapp.com/attachments/621149667941679104/673336537928302599/unknown.png\\\"} [:span \\\"https://cdn.discordapp.com/attachments/621149667941679104/673336537928302599/unknown.png\\\"]]] [\\\"h2\\\" {:id \\\"attack%20on%20death%20star\\\"} [:span \\\"attack on death star\\\"]] [:p [:a {:href \\\"https://freds72.itch.io/attack-on-the-deathstar\\\"} [:span \\\"https://freds72.itch.io/attack-on-the-deathstar\\\"]]] [\\\"h1\\\" {:id \\\"what%20makes%20a%20good%20game?\\\"} [:span \\\"what makes a good game?\\\"]] [:p [:span \\\"secrets\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"instant retry/no load times\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"rewind/replay of big moments\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"easy pickup and play\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"suggesting the user take a break\\\"]] [:p [:span \\\"games to unpack to inform this:\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"earthbound\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"super smash\\\"]] [:p [:a {:href \\\"/note/things_i_like_in_games.html\\\"} [:span \\\"things i love in games\\\"]]] [\\\"h1\\\" {:id \\\"game%20art,%20Pixel%20Art\\\"} [:span \\\"game art, Pixel Art\\\"]] [:p [:a {:href \\\"https://github.com/collections/pixel-art-tools?utm_campaign=explore-email&utm_medium=email&utm_source=newsletter&utm_term=weekly\\\"} [:span \\\"https://github.com/collections/pixel-art-tools?utm_campaign=explore-email&utm_medium=email&utm_source=newsletter&utm_term=weekly\\\"]]] [\\\"h2\\\" {:id \\\"Pixel%20art%20101\\\"} [:span \\\"Pixel art 101\\\"]] [:p [:a {:href \\\"https://www.youtube.com/watch?v=XVoFyCPFzkY\\\"} [:span \\\"https://www.youtube.com/watch?v=XVoFyCPFzkY\\\"]]] [\\\"h2\\\" {:id \\\"victorqribeiro/isocity:%20A%20isometric%20city%20builder%20in%20JavaScript%20-%20repo!\\\"} [:span \\\"victorqribeiro/isocity: A isometric city builder in JavaScript - repo!\\\"]] [:p [:a {:href \\\"https://github.com/victorqribeiro/isocity\\\"} [:span \\\"https://github.com/victorqribeiro/isocity\\\"]]] [\\\"h1\\\" {:id \\\"game%20design%20edu\\\"} [:span \\\"game design edu\\\"]] [\\\"h2\\\" {:id \\\"Table%20of%20Contents%20%C2%B7%20Game%20Programming%20Patterns%20-%20from%20luke\\\"} [:span \\\"Table of Contents · Game Programming Patterns - from luke\\\"]] [:p [:span \\\"[2020-04-15 Wed 13:46]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:a {:href \\\"https://gameprogrammingpatterns.com/contents.html\\\"} [:span \\\"https://gameprogrammingpatterns.com/contents.html\\\"]]] [\\\"h2\\\" {:id \\\"Art%20of%20Game%20Design%20%7C%20Jesse%20Schell%20%7C%20Game%20Design%20%7C%20Art%20of%20Game%20Design\\\"} [:span \\\"Art of Game Design | Jesse Schell | Game Design | Art of Game Design\\\"]] [:p [:span \\\"[2020-04-15 Wed 13:46]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:a {:href \\\"https://www.amazon.com/Art-Game-Design-Lenses-Third/dp/1138632058/ref=dp_ob_title_bk\\\"} [:span \\\"https://www.amazon.com/Art-Game-Design-Lenses-Third/dp/1138632058/ref=dp_ob_title_bk\\\"]]] [:p [:span \\\"From luke\\\"]] [\\\"h1\\\" {:id \\\"games%20research/inspiration\\\"} [:span \\\"games research/inspiration\\\"]] [\\\"h2\\\" {:id \\\"a%20short%20hike\\\"} [:span \\\"a short hike\\\"]] [:p [:a {:href \\\"https://www.youtube.com/watch?time_continue=60&v=RT40_PwU6Co&feature=emb_logo\\\"} [:span \\\"https://www.youtube.com/watch?time_continue=60&v=RT40_PwU6Co&feature=emb_logo\\\"]]] [\\\"h2\\\" {:id \\\"The%20Longing%20(What%20Are%20You%20Playing%20This%20Weekend?)\\\"} [:span \\\"The Longing (What Are You Playing This Weekend?)\\\"]] [:p [:a {:href \\\"https://store.steampowered.com/app/893850/THE_LONGING/\\\"} [:span \\\"https://store.steampowered.com/app/893850/THE_LONGING/\\\"]]] [\\\"h2\\\" {:id \\\"AZ%20-%20sed%20Pathfinder%20%7C%20Devpost\\\"} [:span \\\"AZ - sed Pathfinder | Devpost\\\"]] [:p [:a {:href \\\"https://devpost.com/software/sed-pathfinder\\\"} [:span \\\"https://devpost.com/software/sed-pathfinder\\\"]]] [\\\"h2\\\" {:id \\\"Okami%20for%20mr%20driller%20ish?%20Grfn%20fave\\\"} [:span \\\"Okami for mr driller ish? Grfn fave\\\"]] [\\\"h2\\\" {:id \\\"Kojima%20-%20metal%20gear%20solid\\\"} [:span \\\"Kojima - metal gear solid\\\"]] [:p [:span \\\"4th wall insanity - kojima put them on the map :read:\\\"]] [\\\"h1\\\" {:id \\\"2020-12-05%2022:30:37\\\"} [:span \\\"2020-12-05 22:30:37\\\"]] [:p [:span \\\"reading up on some beat em up ai\\\"]] [:p [:span \\\"enemy circling, attacking n at a time\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:a {:href \\\"https://gamedevelopment.tutsplus.com/tutorials/battle-circle-ai-let-your-player-feel-like-theyre-fighting-lots-of-enemies--gamedev-13535\\\"} [:span \\\"https://gamedevelopment.tutsplus.com/tutorials/battle-circle-ai-let-your-player-feel-like-theyre-fighting-lots-of-enemies--gamedev-13535\\\"]]] [:p [:span \\\"code derived from the above\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:a {:href \\\"https://github.com/tutsplus/battle-circle-ai/blob/master/src/Assets/Scripts/AI/EnemyMob.cs?source=cc\\\"} [:span \\\"https://github.com/tutsplus/battle-circle-ai/blob/master/src/Assets/Scripts/AI/EnemyMob.cs?source=cc\\\"]] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:a {:href \\\"https://github.com/tutsplus/battle-circle-ai/blob/master/src/Assets/Scripts/SwordzPlayer.cs?source=cc\\\"} [:span \\\"https://github.com/tutsplus/battle-circle-ai/blob/master/src/Assets/Scripts/SwordzPlayer.cs?source=cc\\\"]]] [:p [:span \\\"fsm and steering behaviors\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:a {:href \\\"https://gamedevelopment.tutsplus.com/tutorials/finite-state-machines-squad-pattern-using-steering-behaviors--gamedev-13638\\\"} [:span \\\"https://gamedevelopment.tutsplus.com/tutorials/finite-state-machines-squad-pattern-using-steering-behaviors--gamedev-13638\\\"]]] [:p [:span \\\"stack-based fsm\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:a {:href \\\"https://gamedevelopment.tutsplus.com/tutorials/finite-state-machines-theory-and-implementation--gamedev-11867\\\"} [:span \\\"https://gamedevelopment.tutsplus.com/tutorials/finite-state-machines-theory-and-implementation--gamedev-11867\\\"]]] [:p [:span \\\"pulling ideas - thanks for the quick 'user surveys', internet forum!\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:a {:href \\\"https://forum.unity.com/threads/beatem-up-game-design-tips.646069/\\\"} [:span \\\"https://forum.unity.com/threads/beatem-up-game-design-tips.646069/\\\"]]] [:p [:span \\\"mittens - top down 3d shooter\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:a {:href \\\"https://forum.unity.com/threads/mittens-adventure-top-down-shooter-multiplayer.532078/#post-3501917\\\"} [:span \\\"https://forum.unity.com/threads/mittens-adventure-top-down-shooter-multiplayer.532078/\\\"] [:a {:href \\\"#post-3501917\\\"} \\\"post-3501917\\\"]]] [:p [:span \\\"starting to think about a behind the player beat-em-up perspective\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"a bit like punch-out\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"not sure how that'd work\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"maybe just top down is the same\\\"]] [:p [:span \\\"this looks alot like what we might be going for\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:a {:href \\\"https://forum.unity.com/threads/celessteel-retro-streets-of-rage-golden-axe-style-side-scrolling-beat-em-up.412399/\\\"} [:span \\\"https://forum.unity.com/threads/celessteel-retro-streets-of-rage-golden-axe-style-side-scrolling-beat-em-up.412399/\\\"]]] [:p [:a {:href \\\"https://www.reddit.com/r/gamedev/comments/gtqphw/need_advice_on_beat_em_up_movement_ai/\\\"} [:span \\\"https://www.reddit.com/r/gamedev/comments/gtqphw/need_advice_on_beat_em_up_movement_ai/\\\"]]] [:p [:a {:href \\\"https://www.reddit.com/r/gamedev/comments/gtqphw/need_advice_on_beat_em_up_movement_ai/\\\"} [:span \\\"https://www.reddit.com/r/gamedev/comments/gtqphw/need_advice_on_beat_em_up_movement_ai/\\\"]]] [\\\"h1\\\" {:id \\\"2020-12-17%2000:30:50\\\"} [:span \\\"2020-12-17 00:30:50\\\"]] [:p [:span \\\"model for game trailer:\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:a {:href \\\"https://www.youtube.com/watch?v=XOLcsnqBJjI\\\"} [:span \\\"https://www.youtube.com/watch?v=XOLcsnqBJjI\\\"]]] [:p [:span \\\"(lol)\\\"]] [\\\"h1\\\" {:id \\\"triage%20game%20like%20nba%20hangtime%20meets%20streets%20of%20rage\\\"} [:span \\\"triage game like nba hangtime meets streets of rage\\\"]] [\\\"h1\\\" {:id \\\"I%20want%20pacman%20and%20chess%20boards%20across%20surfaces%20around%20my%20apartment\\\"} [:span \\\"I want pacman and chess boards across surfaces around my apartment\\\"]] [:p [:span \\\"I want pacman and chess boards across surfaces around my apartment\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"A maze game  for killing fast little pawns\\\"]] [:p [:span \\\"Chess of Bob\\\"]] [\\\"h1\\\" {:id \\\"Chess%20that%20lets%20you%20go%20through%20the%20sides%20would%20be%20fun\\\"} [:span \\\"Chess that lets you go through the sides would be fun\\\"]] [:p [:span \\\"Chess that lets you go through the sides would be fun\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Queens and bishops and rooks\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Like tower fall\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Through the walls\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Also Pac-Man\\\"]] [\\\"h1\\\" {:id \\\"Tetris%20mazes\\\"} [:span \\\"Tetris mazes\\\"]] [:p [:span \\\"Tetris mazes\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Like frogger\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Totem pole tetris\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Same pattern instead of same color?\\\"]] [\\\"h1\\\" {:id \\\"Tetris%20as%20turn%20based%20poke%20battles\\\"} [:span \\\"Tetris as turn based poke battles\\\"]] [:p [:span \\\"Tetris as turn based poke battles\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Switch character\\\"]] [\\\"h1\\\" {:id \\\"tetris%20-%20find%20the%20blocks,%20turn%20them%20into%20rows%20for%20efficient%20energy%20usage\\\"} [:span \\\"tetris - find the blocks, turn them into rows for efficient energy usage\\\"]] [:p [:span \\\"Idea - tetris - find the blocks, turn them into rows for efficient energy usage\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Key is \\\\\\\"find the blocks\\\\\\\"\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"And having players choose to get some energy now or hold out for a stronger combo\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Find the blocks as in wander the world and seek out a certain shape\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Could make for a decent but short tetris rpg\\\"]] [\\\"h1\\\" {:id \\\"Idea%20for%20game:%20exclusion\\\"} [:span \\\"Idea for game: exclusion\\\"]] [:p [:span \\\"Idea for game: exclusion\\\"]] [:p [:span \\\"Add ishihara plates to tetris\\\"]] [:p [:span \\\"Add power ups\\\"]] [:p [:span \\\"Add fireworks and combo meters and score incrementing\\\"]] [:p [:span \\\"If you see the color blind pic, you win\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Forces you to empathize with an issue\\\"]] [\\\"h1\\\" {:id \\\"Exploring%20the%20boards\\\"} [:span \\\"Exploring the boards\\\"]] [:p [:span \\\"Exploring the boards\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Ghosts of other players moves\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Share the same experience\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Cover the boards with gems\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Let people explore\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Let worlds evolve\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Spring up a city\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Trade your material\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Shared async experience\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Shared bosses\\\"]] [:p [:span \\\"Build up a defense for the night\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Add to your entourage\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Position wisely to avoid encounters\\\"]] [:p [:span \\\"Look at squares/boards on the map\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Toe jam and early\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Wind waker map view\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Worlds like\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Like samurai sudoku\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Modes like that painting/dots game\\\"]] [\\\"h1\\\" {:id \\\"might%20call%20this%20thing:%20Chess%20and%20Ladders\\\"} [:span \\\"might call this thing: Chess and Ladders\\\"]] [:p [:span \\\"might call this thing: Chess and Ladders\\\"]] [:p [:span \\\"tho in my head it's really more like a dungeon crawler/rogue-like\\\"]] [\\\"h1\\\" {:id \\\"MONO-SPACE%20WARS,%20monospaced%20poems%20as%20level%20design\\\"} [:span \\\"MONO-SPACE WARS, monospaced poems as level design\\\"]] [:p [:span \\\"maybe get into these titlebars?\\\"]] [:p [:span \\\"or even just monospaced poems\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"with fun little gaps\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"fixed width layout mazes\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"and you gotta be like\\\"]] [:p [:span \\\"WHAT AM I READING?\\\"]] [:p [:span \\\"todo: MONO-SPACE WARS\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"mono-star wars?\\\"]] [\\\"h1\\\" {:id \\\"npc/host%20for%20each%20world/set%20of%20levels\\\"} [:span \\\"npc/host for each world/set of levels\\\"]] [\\\"h1\\\" {:id \\\"perfecting%20controls%20requires%20live-feedback\\\"} [:span \\\"perfecting controls requires live-feedback\\\"]] [\\\"h1\\\" {:id \\\"destroy%20a%20car%20like%20in%20street%20fighter\\\"} [:span \\\"destroy a car like in street fighter\\\"]] [\\\"h1\\\" {:id \\\"getting%20into%20ui%20sound%20design%20could%20help%20with%20the%20game%20sound%20knowledge\\\"} [:span \\\"getting into ui sound design could help with the game sound knowledge\\\"]] [:p [:span \\\"thinking about a ding like the airpods for up vs down\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"just an octave apart\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"godel is unlocking me\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"now i'll always be incomplete :)\\\"]] [\\\"h1\\\" {:id \\\"'killer%20shades'\\\"} [:span \\\"'killer shades'\\\"]] [:p [:span \\\"Guy driving around wearing a mind-fold.\\\"]] [:p [:span \\\"oh wait they already made that.\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:a {:href \\\"https://www.youtube.com/watch?v=8qesX19tJls\\\"} [:span \\\"https://www.youtube.com/watch?v=8qesX19tJls\\\"]]] [:p [:span \\\"this game looks whack af (\\\"] [:a {:href \\\"https://www.youtube.com/watch?v=8qesX19tJls\\\"} [:span \\\"youtube link\\\"]] [:span \\\").\\\"]] [\\\"h1\\\" {:id \\\"beat%20em%20up%20capture%20the%20flag\\\"} [:span \\\"beat em up capture the flag\\\"]] [:p [:span \\\"beat en up capture the flag\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"some what over cooked inspired\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"but more fighting between grab an drop zones\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"might tie in with there hang time Dreams\\\"]] [\\\"h1\\\" {:id \\\"open%20world%20beat%20em%20up\\\"} [:span \\\"open world beat em up\\\"]] [:p [:span \\\"open world beat em up\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"that's the hitch hikers guide plot\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"lost memories borrow from zelda for structure\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"build up your party\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"go fight the bad guys\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"get quests\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"do fighting and beatemup mini games\\\"]] [\\\"h1\\\" {:id \\\"check%20out%20this%20zelda%20breath%20of%20the%20wild%20ui%20kit%20on%20figma\\\"} [:span \\\"check out this zelda breath of the wild ui kit on figma\\\"]] [:p [:a {:href \\\"https://www.figma.com/community/file/965825767811358609\\\"} [:span \\\"https://www.figma.com/community/file/965825767811358609\\\"]]] [\\\"h1\\\" {:id \\\"remote%20bombs%20as%20pawns\\\"} [:span \\\"remote bombs as pawns\\\"]] [:p [:span \\\"remote bombs as pawns\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"or Vice versa\\\"]] [:p [:span \\\"link and remote chuu chuus\\\"]] [\\\"h1\\\" {:id \\\"play%20ten%20chess%20games%20at%20once\\\"} [:span \\\"play ten chess games at once\\\"]] [:p [:span \\\"play ten chess games at once\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"move piece instead of moving on the current game\\\"]] [:p [:span \\\"doctor as the pause screen with inventory\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"shows link breathing hard or freezing his ass off\\\"]] [\\\"h1\\\" {:id \\\"you%20gotta%20live%20on%20the%20map%20screens\\\"} [:span \\\"you gotta live on the map screens\\\"]] [:p [:span \\\"you gotta live on the map screens\\\"]] [\\\"h1\\\" {:id \\\"gotta%20get%20into%20game%20ui%20design\\\"} [:span \\\"gotta get into game ui design\\\"]] [:p [:span \\\"camera work (multi-cam?)\\\"]] [:p [:span \\\"sound, music ui\\\"]] [:p [:span \\\"directing, shots, angles\\\"]] [\\\"h1\\\" {:id \\\"Games%20-%20Godot\\\"} [:span \\\"Games - Godot\\\"]] [\\\"h2\\\" {:id \\\"chess%20game?\\\"} [:span \\\"chess game?\\\"]] [\\\"h2\\\" {:id \\\"beat%20em%20up?\\\"} [:span \\\"beat em up?\\\"]] [\\\"h2\\\" {:id \\\"fishy?\\\"} [:span \\\"fishy?\\\"]] [\\\"h2\\\" {:id \\\"run-n-gun?\\\"} [:span \\\"run-n-gun?\\\"]] [\\\"h2\\\" {:id \\\"inky?\\\"} [:span \\\"inky?\\\"]] [\\\"h2\\\" {:id \\\"bullet%20hell?\\\"} [:span \\\"bullet hell?\\\"]] [\\\"h2\\\" {:id \\\"dialog%20system?\\\"} [:span \\\"dialog system?\\\"]] [\\\"h2\\\" {:id \\\"pills?%20kata?\\\"} [:span \\\"pills? kata?\\\"]] [\\\"h2\\\" {:id \\\"hhgttbeu?\\\"} [:span \\\"hhgttbeu?\\\"]] [\\\"h2\\\" {:id \\\"chess%20highlights/review%20game?\\\"} [:span \\\"chess highlights/review game?\\\"]] [\\\"h1\\\" {:id \\\"design/art%20pipeline\\\"} [:span \\\"design/art pipeline\\\"]] [:p [:a {:href \\\"https://www.gamasutra.com/view/news/313026/Art_Design_Deep_Dive_Using_a_3D_pipeline_for_2D_animation_in_Dead_Cells.php\\\"} [:span \\\"https://www.gamasutra.com/view/news/313026/Art_Design_Deep_Dive_Using_a_3D_pipeline_for_2D_animation_in_Dead_Cells.php\\\"]]] [\\\"h1\\\" {:id \\\"bevy%20engine?\\\"} [:span \\\"bevy engine?\\\"]] [:p [:a {:href \\\"https://bevyengine.org/news/introducing-bevy/\\\"} [:span \\\"https://bevyengine.org/news/introducing-bevy/\\\"]]] [\\\"h1\\\" {:id \\\"alan%20wake%20-%20control\\\"} [:span \\\"alan wake - control\\\"]] [:p [:span \\\"open world development, then on rails for the story line\\\"]] [\\\"h1\\\" {:id \\\"chess%20beat%20em%20up%20is%20back%20on\\\"} [:span \\\"chess beat em up is back on\\\"]] [:p [:span \\\"chess beat em up is back on\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"and probably has to be 3d\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"even if the movement is 2d, handling two dimensions\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"caveman dimensions\\\"]] [\\\"h1\\\" {:id \\\"Zsky%20-%20itch.io\\\"} [:a {:href \\\"https://zsky2000.itch.io/\\\"} [:span \\\"Zsky - itch.io\\\"]]] [:p [:a {:href \\\"https://zsky2000.itch.io/\\\"} [:span \\\"Zsky - itch.io\\\"]]] [:blockquote [:p [:span \\\"make a 3d something!\\\"]]] [\\\"h1\\\" {:id \\\"make%20time%20to%20spend%20thinking%20in%20the%20game\\\"} [:span \\\"make time to spend thinking in the game\\\"]] [:p [:span \\\"design something with feeling\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"herding? a shepherd? lets just \\\"] [:em [:span \\\"express\\\"]] [:span \\\" it\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"doodles, tilemaps\\\"]] [\\\"h1\\\" {:id \\\"level%20design%20happens%20at%20the%20node%20level\\\"} [:span \\\"level design happens at the node level\\\"]] [:p [:span \\\"the godot node level\\\"]] [\\\"h1\\\" {:id \\\"could%20you%20play%20the%20same%20levels%20from%20lil-shooter%20in%20beatemup?\\\"} [:span \\\"could you play the same levels from lil-shooter in beatemup?\\\"]] [:p [:span \\\"is one just another mechanic for the other?\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"why not import the same/other player scene?\\\"]] [\\\"h1\\\" {:id \\\"good%20name%20for%20a%20game\\\"} [:span \\\"good name for a game\\\"]] [:p [:span \\\"'persist'\\\"]] [:p [:span \\\"all about survival\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"or about storing data in the database?\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"a 'persist' keybinding?\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"aka a screenshot\\\"]] [\\\"h1\\\" {:id \\\"https://github.com/nonunknown/godot-powerful\\\"} [:a {:href \\\"https://github.com/nonunknown/godot-powerful\\\"} [:span \\\"https://github.com/nonunknown/godot-powerful\\\"]]] [:p [:a {:href \\\"https://github.com/nonunknown/godot-powerful\\\"} [:span \\\"https://github.com/nonunknown/godot-powerful\\\"]]] [\\\"h1\\\" {:id \\\"https://github.com/viniciusgerevini/godot-aseprite-wizard\\\"} [:a {:href \\\"https://github.com/viniciusgerevini/godot-aseprite-wizard\\\"} [:span \\\"https://github.com/viniciusgerevini/godot-aseprite-wizard\\\"]]] [:p [:a {:href \\\"https://github.com/viniciusgerevini/godot-aseprite-wizard\\\"} [:span \\\"https://github.com/viniciusgerevini/godot-aseprite-wizard\\\"]]] [\\\"h1\\\" {:id \\\"another%20shot%20at%20ftl\\\"} [:span \\\"another shot at ftl\\\"]] [:p [:span \\\"another shot at ftl\\\"]] [\\\"h1\\\" {:id \\\"Make%20a%20level%20for%20triage%20that%20you%20run%20through%20in%20the%20dark\\\"} [:span \\\"Make a level for triage that you run through in the dark\\\"]] [:p [:span \\\"Make a level for triage that you run through in the dark\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Then turn on the power\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"The run back through the same path\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Now with the lights on\\\"]] [\\\"h1\\\" {:id \\\"don't%20break%20the%20ice%20(godot%20rewrite)\\\"} [:span \\\"don't break the ice (godot rewrite)\\\"]] [\\\"h1\\\" {:id \\\"check%20out%20frvr\\\"} [:span \\\"check out frvr\\\"]] [:p [:a {:href \\\"https://frvr.com/\\\"} [:span \\\"https://frvr.com/\\\"]]] [\\\"h1\\\" {:id \\\"Game%20design\\\"} [:span \\\"Game design\\\"]] [:p [:span \\\"Game design\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Cohorts of 8?\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Battle in twos and threes\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Make it possible to choose to be cruel or show mercy\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Meaningful loyalty or betrayal\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"How can you let some one be a Ramsey or a fray?\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"A protector or a plaything?\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Different levels of experience\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Different play styles\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Plus balancing items\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Think coup\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Think codenames\\\"]] [\\\"h1\\\" {:id \\\"Metroidvania\\\"} [:span \\\"Metroidvania\\\"]] [:p [:span \\\"Metroidvania\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Mansion or castle\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Murder mystery\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Chess as progression\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Ghost story\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Swordinary\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Re turning to previous paths\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Beat 'em up across Westeros\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"None platform er Metroid vania\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Real time sun light?\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Weather system?\\\"]] [:p [:span \\\"Mono chromatic\\\"]] [\\\"h1\\\" {:id \\\"Character%20select%20as%20picking%20which%20color%20combo%20to%20apply\\\"} [:span \\\"Character select as picking which color combo to apply\\\"]] [:p [:span \\\"Character select as picking which color combo to apply\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"What two tone banner flag do you represent??\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Purple/dark purple or green/dark green\\\"]] [:p [:span \\\"Trace along these platformer/vania jump puzzles\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"As in Mario kart\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"With bots trying to make the same moves\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"And include ghosts of past runs\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Lap one lap two lap three\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Where'd you leave that banana??\\\"]] [\\\"h1\\\" {:id \\\"recording%20and%20preserving%20wins/deaths/times%20on%20all%20levels\\\"} [:span \\\"recording and preserving wins/deaths/times on all levels\\\"]] [:p [:span \\\"go for that Towerfall Trials style records and win-state\\\"]] [\\\"h1\\\" {:id \\\"'buffered'%20moves%20on%20a%20grid?\\\"} [:span \\\"'buffered' moves on a grid?\\\"]] [:p [:span \\\"fire-emblem selection -> char follows path\\\"]] [\\\"h1\\\" {:id \\\"loveblobs%20-%20made%20me%20laugh\\\"} [:span \\\"loveblobs - made me laugh\\\"]] [:p [:a {:href \\\"https://github.com/exezin/loveblobs\\\"} [:span \\\"https://github.com/exezin/loveblobs\\\"]]] [\\\"h1\\\" {:id \\\"show%20users%20other%20users'%20ghosts?\\\"} [:span \\\"show users other users' ghosts?\\\"]] [\\\"h1\\\" {:id \\\"ought%20to%20make%20a%20controls-editing%20ui%20and%20integrate%20it%20in%20aa%20a%20games%20player%20control%20actions%20library\\\"} [:span \\\"ought to make a controls-editing ui and integrate it in aa a games player control actions library\\\"]] [:p [:span \\\"ought to make a controls-editing ui and integrate it in aa a games player control actions library\\\"]]], :path [], :nextjournal/expanded-at {[] false, nil false}}\", :nextjournal/viewer {:name :html-}}, :path []} {:nextjournal/viewer {:name :clerk/result, :render-fn #viewer-fn v/result-viewer}, :nextjournal/value {:nextjournal/edn \"{:nextjournal/viewer {:name :html-, :render-fn #viewer-fn v/html}, :nextjournal/value [:div.viewer-markdown [:hr] [\\\"h1\\\" {:id \\\"Backlinks\\\"} [:span \\\"Backlinks\\\"]] [\\\"h3\\\" {:id \\\"2022-10-17\\\"} [:a {:href \\\"/daily/2022-10-17.html\\\"} [:span \\\"2022-10-17\\\"]]] [\\\"h3\\\" {:id \\\"2022-10-12\\\"} [:a {:href \\\"/daily/2022-10-12.html\\\"} [:span \\\"2022-10-12\\\"]]] [\\\"h3\\\" {:id \\\"2022-10-12\\\"} [:a {:href \\\"/daily/2022-10-12.html\\\"} [:span \\\"2022-10-12\\\"]]] [\\\"h3\\\" {:id \\\"2022-10-12\\\"} [:a {:href \\\"/daily/2022-10-12.html\\\"} [:span \\\"2022-10-12\\\"]]] [\\\"h3\\\" {:id \\\"2022-10-08\\\"} [:a {:href \\\"/daily/2022-10-08.html\\\"} [:span \\\"2022-10-08\\\"]]]], :path [], :nextjournal/expanded-at {[] false, nil false}}\", :nextjournal/viewer {:name :html-}}, :path []}], :toc {:type :toc}, :toc-visibility false, :scope {:namespace :org-blog.pages.note}}, :path [], :nextjournal/expanded-at {[] false}}}"
+viewer.set_state(viewer.read_string(state))
+viewer.mount(document.getElementById('clerk'))
+</script></body></html>

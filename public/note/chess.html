@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html class="overflow-hidden min-h-screen"><head><meta charset="UTF-8"><meta content="width=device-width, initial-scale=1" name="viewport"><script src="https://cdn.tailwindcss.com?plugins=typography" type="text/javascript"></script><script>tailwind.config = {
+  darkMode: "class",
+  content: ["./public/build/index.html", "./public/build/**/*.html", "./build/viewer.js"],
+  safelist: ['dark'],
+  theme: {
+    extend: {},
+    fontFamily: {
+      sans: ["Fira Sans", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+      serif: ["PT Serif", "serif"],
+      mono: ["Fira Mono", "monospace"]
+    }
+  },
+  variants: {
+    extend: {},
+  },
+  plugins: [],
+}
+</script><style type="text/tailwindcss">@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-size: 18px;
+  }
+  @media (max-width: 600px) {
+    html {
+      font-size: 16px;
+    }
+  }
+  .font-condensed { font-family: "Fira Sans Condensed", sans-serif; }
+  .font-inter     { font-family: "Inter", sans-serif; }
+  body {
+    @apply font-serif antialiased text-gray-900 sm:overscroll-y-none;
+  }
+  code, .code {
+    @apply font-mono text-sm text-gray-900 bg-slate-50 px-0.5 py-px rounded dark:bg-gray-800;
+  }
+  code::before, code::after { @apply content-none !important; }
+  h1, h3, h4, h5, h6 {
+    @apply font-condensed font-bold mt-8 first:mt-0;
+  }
+  h2 {
+    /*We cannot collapse margins due to nesting but we want to*/
+    /*keep the h2’s large margin visible*/
+    @apply font-condensed font-bold mt-8 first:mt-2;
+  }
+  h1 { @apply text-4xl; }
+  h2 { @apply text-3xl; }
+  h3 { @apply text-2xl; }
+
+  button { @apply focus:outline-none; }
+  strong { @apply font-bold; }
+  em     { @apply italic; }
+  pre    { @apply m-0 font-mono; }
+}
+
+/* Compatibility */
+/* --------------------------------------------------------------- */
+/* TODO: Verify which colors are in use and replace with Tailwind
+   colors accordingly. Move Nj-specific styles out of here. */
+
+:root {
+  --teal-color: #31afd0;
+  --dark-teal-color: #095960;
+  --near-black-color: #2e2e2c;
+  --red-color: #d64242;
+  --dark-blue-color: #1f2937;
+  --dark-blue-60-color: rgba(28, 42, 56, 0.6);
+  --gray-panel-color: rgba(239, 241, 245, 1.000);
+  --brand-color: var(--dark-blue-color);
+  --link-color: #5046e4;
+  --command-bar-selected-color: var(--teal-color);
+}
+
+.serif      { @apply font-serif; }
+.sans-serif { @apply font-sans; }
+.monospace  { @apply font-mono; }
+.inter      { @apply font-inter; }
+
+.border-color-teal { border-color: var(--dark-teal-color); }
+.teal { color: var(--teal-color); }
+.bg-dark-blue { background: var(--dark-blue-color); }
+.bg-dark-blue-60 { background: rgba(28, 42, 56, 0.6); }
+.bg-gray-panel { background: var(--gray-panel-color); }
+.text-dark-blue  { color: var(--dark-blue-color); }
+.text-dark-blue-60 { color: var(--dark-blue-60-color); }
+.border-dark-blue-30 { border-color: rgba(28, 42, 56, 0.6); }
+.text-brand { color: var(--dark-blue-color); }
+.bg-brand { background: var(--dark-blue-color); }
+.text-selected { color: white; }
+.red { color: var(--red-color); }
+
+/* Disclose Button */
+/* --------------------------------------------------------------- */
+
+.disclose {
+  @apply content-none border-solid cursor-pointer inline-block relative mr-[3px] top-[-2px] transition-all;
+  border-color: var(--near-black-color) transparent;
+  border-width: 6px 4px 0;
+}
+.disclose:hover {
+  border-color: var(--near-black-color) transparent;
+}
+.dark .disclose,
+.dark .disclose:hover {
+  border-color: white transparent;
+}
+.disclose.collapsed {
+  @apply rotate-[-90deg];
+}
+
+/* Layout */
+/* --------------------------------------------------------------- */
+
+.page {
+  @apply max-w-5xl mx-auto px-12 box-border flex-shrink-0;
+}
+.max-w-prose { @apply max-w-[46rem] !important; }
+.max-w-wide  { @apply max-w-3xl !important; }
+
+/* List Styles */
+/* --------------------------------------------------------------- */
+
+.task-list-item + .task-list-item,
+.viewer-markdown ul ul {
+  @apply mt-1 mb-0;
+}
+
+/* compact TOC */
+.viewer-markdown .toc ul {
+  list-style: none;
+  @apply my-1;
+}
+
+/* Code Viewer */
+/* --------------------------------------------------------------- */
+
+.viewer-code {
+  @apply font-mono bg-slate-100 rounded-sm text-sm overflow-x-auto dark:bg-gray-800;
+}
+.viewer-code .cm-content {
+  @apply py-4 px-8;
+}
+@media (min-width: 960px){
+  .viewer-notebook .viewer-code .cm-content {
+    @apply py-4 pl-12;
+  }
+}
+/* Don’t show focus outline when double-clicking cell in Safari */
+.cm-scroller { @apply focus:outline-none; }
+
+/* Syntax Highlighting */
+/* --------------------------------------------------------------- */
+
+.inspected-value { @apply text-xs font-mono leading-[1.25rem]; }
+.cmt-strong, .cmt-heading { @apply font-bold; }
+.cmt-italic, .cmt-emphasis { @apply italic; }
+.cmt-strikethrough { @apply line-through; }
+.cmt-link { @apply underline; }
+.untyped-value { @apply whitespace-nowrap; }
+
+.cm-editor, .cmt-default, .viewer-result {
+  @apply text-slate-800 dark:text-slate-300;
+}
+.cmt-keyword {
+  @apply text-purple-800 dark:text-pink-400;
+}
+.cmt-atom, .cmt-bool, .cmt-url, .cmt-contentSeparator, .cmt-labelName {
+  @apply text-blue-900 dark:text-blue-300;
+}
+.cmt-inserted, .cmt-literal {
+  @apply text-emerald-700 dark:text-emerald-200;
+}
+.cmt-string, .cmt-deleted {
+  @apply text-rose-700 dark:text-sky-300;
+}
+.cmt-italic.cmt-string {
+  @apply dark:text-sky-200;
+}
+.cmt-regexp, .cmt-escape {
+  @apply text-orange-500 dark:text-orange-300;
+}
+.cmt-variableName {
+  @apply text-blue-800 dark:text-sky-300;
+}
+.cmt-typeName, .cmt-namespace {
+  @apply text-emerald-600 dark:text-emerald-300;
+}
+.cmt-className {
+  @apply text-teal-600 dark:text-teal-200;
+}
+.cmt-macroName {
+  @apply text-teal-700 dark:text-teal-200;
+}
+.cmt-propertyName {
+  @apply text-blue-700 dark:text-blue-200;
+}
+.cmt-comment {
+  @apply text-slate-500 dark:text-slate-400;
+}
+.cmt-meta {
+  @apply text-slate-600 dark:text-slate-400;
+}
+.cmt-invalid {
+  @apply text-red-500 dark:text-red-300;
+}
+
+.result-data {
+  @apply font-mono text-sm overflow-x-auto whitespace-nowrap leading-normal;
+}
+.result-data::-webkit-scrollbar, .path-nav::-webkit-scrollbar {
+  @apply h-0;
+}
+.result-data-collapsed {
+  @apply whitespace-nowrap;
+}
+.result-data-field {
+  @apply ml-4 whitespace-nowrap;
+}
+.result-data-field-link{
+  @apply ml-4 whitespace-nowrap cursor-pointer;
+}
+.result-data-field-link:hover {
+  @apply text-black bg-black/5;
+}
+.result-text-empty {
+  color: rgba(0,0,0,.3);
+}
+.browsify-button:hover {
+  box-shadow: -2px 0 0 2px #edf2f7;
+}
+
+/* Prose */
+/* --------------------------------------------------------------- */
+
+.viewer-notebook,
+.viewer-markdown {
+  @apply prose
+    dark:prose-invert
+    prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
+    dark:prose-a:text-blue-300
+    prose-p:mt-4 prose-p:leading-snug
+    prose-ol:mt-4 prose-ol:mb-6 prose-ol:leading-snug
+    prose-ul:mt-4 prose-ul:mb-6 prose-ul:leading-snug
+    prose-blockquote:mt-4 prose-blockquote:leading-snug
+    prose-hr:mt-6 prose-hr:border-t-2 prose-hr:border-solid prose-hr:border-slate-200
+    prose-figure:mt-4
+    prose-figcaption:mt-2 prose-figcaption:text-xs
+    prose-headings:mb-4
+    prose-table:mt-0
+    prose-th:mb-0
+    prose-img:my-0
+    prose-code:font-medium prose-code:bg-slate-100
+    max-w-none;
+}
+.viewer-markdown blockquote p:first-of-type:before,
+.viewer-markdown blockquote p:last-of-type:after {
+  @apply content-none;
+}
+
+/* Images */
+/* --------------------------------------------------------------- */
+
+
+/* Todo Lists */
+/* --------------------------------------------------------------- */
+
+.contains-task-list {
+  @apply pl-6 list-none;
+}
+.contains-task-list input[type="checkbox"] {
+  @apply appearance-none h-4 w-4 rounded border border-slate-200 relative mr-[0.3rem] ml-[-1.5rem] top-[0.15rem];
+}
+.contains-task-list input[type="checkbox"]:checked {
+  @apply border-indigo-600 bg-indigo-600 bg-no-repeat bg-contain;
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+}
+
+/* Markdown TOC */
+/* --------------------------------------------------------------- */
+
+.viewer-markdown .toc      { @apply mt-4; }
+.viewer-markdown h1 + .toc { @apply mt-8; }
+
+.viewer-markdown .toc h1,
+.viewer-markdown .toc h2,
+.viewer-markdown .toc h3,
+.viewer-markdown .toc h4,
+.viewer-markdown .toc h5,
+.viewer-markdown .toc h6 {
+  @apply text-base text-indigo-600 font-sans my-0;
+}
+.viewer-markdown .toc a {
+  @apply text-indigo-600 font-normal no-underline hover:underline;
+}
+.viewer-markdown .toc li    { @apply m-0; }
+.viewer-markdown .toc ul ul { @apply pl-4; }
+
+/* Notebook Spacing */
+/* --------------------------------------------------------------- */
+
+.viewer-notebook { @apply py-16; }
+#clerk-static-app .viewer-notebook { @apply pt-[0.8rem] pb-16; }
+.viewer-markdown *:first-child:not(.viewer-code):not(li):not(h2) { @apply mt-0; }
+/*.viewer + .viewer { @apply mt-6; }*/
+.viewer + .viewer-result { @apply mt-0; }
+.viewer-code + .viewer-result { @apply mt-3; }
+.viewer-markdown + .viewer-markdown { @apply mt-0; }
+
+/* Sidenotes */
+/* --------------------------------------------------------------- */
+
+.sidenote-ref {
+  @apply top-[-3px] inline-flex justify-center items-center w-[18px] h-[18px]
+    rounded-full bg-slate-100 border border-slate-300 hover:bg-slate-200 hover:border-slate-300
+    m-0 ml-[4px] cursor-pointer;
+}
+.sidenote {
+  @apply hidden float-left clear-both mx-[2.5%] my-4 text-xs relative w-[95%];
+}
+.sidenote-ref.expanded + .sidenote {
+  @apply block;
+}
+@media (min-width: 860px) {
+  .sidenote-ref {
+    @apply top-[-0.5em] w-auto h-auto inline border-0 bg-transparent m-0 pointer-events-none;
+  }
+  .sidenote sup { @apply inline; }
+  .viewer-markdown .contains-sidenotes p { @apply max-w-[65%]; }
+  .viewer-markdown p .sidenote {
+    @apply mr-[-54%] mt-[0.2rem] w-1/2 float-right clear-right relative block;
+  }
+}
+.viewer-code + .viewer:not(.viewer-markdown):not(.viewer-code):not(.viewer-code-folded),
+.viewer-code-folded + .viewer:not(.viewer-markdown):not(.viewer-code):not(.viewer-code-folded),
+.viewer-result + .viewer-result {
+  @apply mt-2;
+}
+.viewer-code + .viewer-code-folded {
+  @apply mt-4;
+}
+.viewer-result {
+  @apply leading-tight mb-6;
+}
+.viewer-result figure {
+  @apply mt-0 !important;
+}
+@media (min-width: 768px) {
+  .devcard-desc > div {
+    @apply max-w-full m-0;
+  }
+}
+
+/* Command Palette */
+/* --------------------------------------------------------------- */
+
+.nj-commands-input {
+  @apply bg-transparent text-white;
+}
+.nj-context-menu-item:hover:not([disabled]) {
+  @apply cursor-pointer;
+  background-color: rgba(255,255,255,.14);
+}
+
+/* Devdocs */
+/* --------------------------------------------------------------- */
+
+.logo, .logo-white {
+  @apply block indent-[-999em];
+  background: url(/images/nextjournal-logo.svg) center center no-repeat;
+}
+.devdocs-body {
+  @apply font-inter;
+}
+
+/* Workarounds */
+/* --------------------------------------------------------------- */
+
+/* Fixes vega viewer resizing into infinity */
+.vega-embed .chart-wrapper { @apply h-auto !important; }
+/* fixes fraction separators being overridden by tw’s border-color */
+.katex * { @apply border-black; }
+</style><script src="https://storage.googleapis.com/nextjournal-cas-eu/assets/28ktYzexRpt9ZsXvxpxDRnu497pkEeZjEvXB1NMVzfEoPEgsbQXEyM3j5CEucNccte6QGnX1qQxHL2KHfoBRG2FN-viewer.js" type="text/javascript"></script><link href="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css" rel="stylesheet" type="text/css"><link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&amp;family=Fira+Mono:wght@400;700&amp;family=Fira+Sans+Condensed:ital,wght@0,700;1,700&amp;family=Fira+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&amp;family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet" type="text/css"></head><body class="dark:bg-gray-900"><div class="flex flex-col items-center text-gray-900 dark:text-white"><div class="flex flex-row items-center max-w-prose w-full px-8 py-2"><h3 class="font-mono">DangerRuss Notes</h3><div class="ml-auto flex flex-row space-x-4"><div><h4><a class="font-mono hover:underline cursor-pointer" href="/index.html">all</a></h4></div><div><h4><a class="font-mono hover:underline cursor-pointer" href="/note/blog_about.html">about</a></h4></div></div></div><hr></div><div id="clerk"></div><script>let viewer = nextjournal.clerk.sci_viewer
+let state = "{:doc {:nextjournal/viewer {:name :clerk/notebook, :render-fn #viewer-fn v/notebook-viewer}, :nextjournal/value {:blocks [{:nextjournal/viewer {:name :html-, :render-fn #viewer-fn v/html}, :nextjournal/value [:div.viewer-markdown]} {:nextjournal/viewer {:name :clerk/result, :render-fn #viewer-fn v/result-viewer}, :nextjournal/value {:nextjournal/edn \"{:nextjournal/viewer {:name :html-, :render-fn #viewer-fn v/html}, :nextjournal/value [:div.viewer-markdown [\\\"h1\\\" {:id \\\"Chess\\\"} [:span \\\"Chess\\\"]]], :path [], :nextjournal/expanded-at {[] false, nil false}}\", :nextjournal/viewer {:name :html-}}, :path []} {:nextjournal/viewer {:name :clerk/result, :render-fn #viewer-fn v/result-viewer}, :nextjournal/value {:nextjournal/edn \"{:nextjournal/viewer {:name :html-, :render-fn #viewer-fn v/html}, :nextjournal/value [:div.viewer-markdown [:p [:span \\\"See also: russmatney/chess\\\"]] [\\\"h1\\\" {:id \\\"org%20transclude%20these?\\\"} [:span \\\"org transclude these?\\\"]] [\\\"h1\\\" {:id \\\"russmatney/chess%20listing%20all%20games%20from%20chess.com%20and%20lichess\\\"} [:span \\\"russmatney/chess listing all games from \\\"] [:a {:href \\\"http://chess.com\\\"} [:span \\\"chess.com\\\"]] [:span \\\" and lichess\\\"]] [:p [:span \\\"store them all in a db\\\"]] [\\\"h1\\\" {:id \\\"chess%20hacking\\\"} [:span \\\"chess hacking\\\"]] [\\\"h2\\\" {:id \\\"%5BB%5D%20snippet%20that%20pulls%20the%20latest%20move%20from%20running%20game%20in%20browser\\\"} [:span \\\"[\\\"] [:a {:href \\\"#B\\\"} \\\"B\\\"] [:span \\\"] snippet that pulls the latest move from running game in browser\\\"]] [:p [:span \\\"from the other browser\\\"]] [:p [:span \\\"where's my babashka chess api?\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"scrape this thing and bring it into company mode!\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"lichess-in-emacs\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"lichess->bb->clomacs->org mode\\\"]] [:p [:span \\\"lol expo\\\"]] [\\\"h2\\\" {:id \\\"lichess%20urls%20(games/studies)%20from%20browser-tab%20as%20a%20first-class%20ralphie%20citizen\\\"} [:span \\\"lichess urls (games/studies) from browser-tab as a first-class ralphie citizen\\\"]] [:p [:span \\\"does ralphie need domain objects?\\\"]] [:p [:span \\\"comparable to a github url - should be easily cloned/imported/tagged\\\"]] [:p [:span \\\"like pathom but the parsing also fetches the metadata\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"like walkable\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"should be easy to impl a backend for it\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"or maybe that backend should just be datomic\\\"]] [\\\"h2\\\" {:id \\\"russmatney/chess:%20write%20datomic%20backend%20for%20personal%20chess%20games\\\"} [:span \\\"russmatney/chess: write datomic backend for personal chess games\\\"]] [:p [:span \\\"build our own chess database\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"lichess/chess.com urls are just a metadata field on it\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"should have our own studies\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"that can be composed of other studies\\\"]] [\\\"h1\\\" {:id \\\"the%20wiki-wand%20of%20lichess\\\"} [:span \\\"the wiki-wand of lichess\\\"]] [:p [:span \\\"recreate with studies (copies of games) and games as the primary navigation\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"should be like moving org items around\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"could be org backed\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"games could have fully fleshed out as a datomic schema\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"chess pgn datomic schema? sounds like a useful namespace\\\"]] [\\\"h1\\\" {:id \\\"%5BC%5D%20continue%20doctor/chess%20feat\\\"} [:span \\\"[\\\"] [:a {:href \\\"#C\\\"} \\\"C\\\"] [:span \\\"] continue doctor/chess feat\\\"]] [:p [:a {:href \\\"https://jsfiddle.net/tailuge/z7qqgt5k/\\\"} [:span \\\"https://jsfiddle.net/tailuge/z7qqgt5k/\\\"]]] [\\\"h1\\\" {:id \\\"more%20chess%20opening%20studies\\\"} [:span \\\"more chess opening studies\\\"]] [:p [:span \\\"more chess opening studies\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"better foundation, richer soil\\\"]] [\\\"h1\\\" {:id \\\"Check%20out%20this%20chess%20game:%20russmatney%20vs%20dugar68sk%20-%20https://www.chess.com/live/game/18505186143\\\"} [:span \\\"Check out this \\\"] [:a {:href \\\"#chess\\\"} \\\"chess\\\"] [:span \\\" game: russmatney vs dugar68sk - \\\"] [:a {:href \\\"https://www.chess.com/live/game/18505186143\\\"} [:span \\\"https://www.chess.com/live/game/18505186143\\\"]]] [:p [:span \\\"Check out this \\\"] [:a {:href \\\"#chess\\\"} \\\"chess\\\"] [:span \\\" game: russmatney vs dugar68sk - \\\"] [:a {:href \\\"https://www.chess.com/live/game/18505186143\\\"} [:span \\\"https://www.chess.com/live/game/18505186143\\\"]]] [\\\"h1\\\" {:id \\\"ask%20why%20more!\\\"} [:span \\\"ask why more!\\\"]] [:p [:span \\\"(chess mindset)\\\"]] [\\\"h1\\\" {:id \\\"these%20move-suggestion%20line-thicknesses%20are%20sweet\\\"} [:span \\\"these move-suggestion line-thicknesses are sweet\\\"]] [:p [:span \\\"i want to see them for all available moves - next step of each tree\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"combine the relative value\\\"]] [:p [:span \\\"definitely wish i could write and screenshot\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"i think i just need to symlink the screenshots dir into public/assets/screenshots\\\"]] [\\\"h1\\\" {:id \\\"5%20+%203%20game!!!!\\\"} [:span \\\"5 + 3 game!!!!\\\"]] [:p [:a {:href \\\"https://lichess.org/8QQLi4baxsDN\\\"} [:span \\\"https://lichess.org/8QQLi4baxsDN\\\"]]] [:p [:span \\\"i took 35 seconds on this move, and he resigned....\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"another victory!\\\"]] [:p [:span \\\"so, i was thinking bxf6\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"but of course, nxf6++\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"not just a check, a double check\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"which means there are no bs pawn blocks, etc\\\"]] [\\\"h1\\\" {:id \\\"%5BSite%20%22Chess.com%20iPhone%22%5D\\\"} [:span \\\"[Site \\\\\\\"\\\"] [:a {:href \\\"http://Chess.com\\\"} [:span \\\"Chess.com\\\"]] [:span \\\" iPhone\\\\\\\"]\\\"]] [:p [:span \\\"[Site \\\\\\\"\\\"] [:a {:href \\\"http://Chess.com\\\"} [:span \\\"Chess.com\\\"]] [:span \\\" iPhone\\\\\\\"]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[Date \\\\\\\"07/31/2021 01:16AM\\\\\\\"]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[FEN rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[White \\\\\\\"russmatney\\\\\\\"]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[Black \\\\\\\"msushahw\\\\\\\"]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[Result \\\\\\\"russmatney wins by Checkmate\\\\\\\"]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[WhiteElo \\\\\\\"995\\\\\\\"]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[BlackElo \\\\\\\"989\\\\\\\"]\\\"]] [:p [:span \\\"1.e4 {3:02} e5 {3:01} 2.d3 {3:01} Nf6 {3:01} 3.Nf3 {3:01} Nc6 {3:01} 4.Nbd2 {2:56} Bc5 {3:01} 5.Be2 {2:53} Ng4 {3:01} 6.O-O {2:53} d6 {2:58} 7.Re1 {2:46} Bxf2+ {2:57} 8.Kf1 {2:39} Be3 {2:50} 9.Nc4 {2:25} Nf2 {2:50} 10.Nxe3 {2:15} Nxd1 {2:50} 11.Bxd1 {2:14} Bg4 {2:48} 12.Nxg4 {2:07} O-O {2:32} 13.Be3 {2:01} a5 {2:32} 14.c4 {2:01} Nb4 {2:32} 15.Nf2 {1:48} f6 {2:28} 16.a3 {1:49} Nc6 {2:28} 17.Ba4 {1:46} Ne7 {2:19} 18.b4 {1:41} axb4 {2:20} 19.axb4 {1:41} f5 {2:17} 20.exf5 {1:21} Nxf5 {2:18} 21.Bg5 {1:17} Qc8 {2:10} 22.c5 {1:10} b5 {2:01} 23.Bxb5 {1:05} Rxa1 {2:02} 24.Rxa1 {1:05} dxc5 {2:03} 25.bxc5 {1:00} Qb7 {2:03} 26.Bc4+ {0:56} Kh8 {2:01} 27.Nxe5 {0:49} Qb2 {1:48} 28.Nf7+ {0:25} Rxf7 {1:40} 29.Ra8+ {0:11} Rf8 {1:15} 30.Rxf8# {0:11}  {russmatney wins by Checkmate}\\\"]] [\\\"h1\\\" {:id \\\"%5BSite%20%22Chess.com%20iPhone%22%5D\\\"} [:span \\\"[Site \\\\\\\"\\\"] [:a {:href \\\"http://Chess.com\\\"} [:span \\\"Chess.com\\\"]] [:span \\\" iPhone\\\\\\\"]\\\"]] [:p [:span \\\"[Site \\\\\\\"\\\"] [:a {:href \\\"http://Chess.com\\\"} [:span \\\"Chess.com\\\"]] [:span \\\" iPhone\\\\\\\"]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[Date \\\\\\\"08/03/2021 02:14AM\\\\\\\"]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[FEN rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[White \\\\\\\"Pipolai24\\\\\\\"]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[Black \\\\\\\"russmatney\\\\\\\"]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[Result \\\\\\\"russmatney wins by Checkmate\\\\\\\"]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[WhiteElo \\\\\\\"822\\\\\\\"]\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"[BlackElo \\\\\\\"878\\\\\\\"]\\\"]] [:p [:span \\\"1.e4 {1:59} c6 {1:59} 2.Nc3 {1:58} d5 {1:59} 3.exd5 {1:58} cxd5 {1:59} 4.Bb5+ {1:58} Nc6 {1:58} 5.Bxc6+ {1:57} bxc6 {1:59} 6.d4 {1:56} e6 {1:56} 7.Nf3 {1:54} Ne7 {1:56} 8.Bg5 {1:54} h6 {1:53} 9.Bxe7 {1:53} Bxe7 {1:53} 10.O-O {1:53} O-O {1:53} 11.g3 {1:51} Ba6 {1:53} 12.Re1 {1:50} Bf6 {1:51} 13.Ne5 {1:48} Qb6 {1:48} 14.Nd7 {1:47} Qxb2 {1:38} 15.Nxf8 {1:46} Qxc3 {1:35} 16.Nd7 {1:44} Bxd4 {1:35} 17.a4 {1:37} c5 {1:27} 18.Qg4 {1:23} Qxc2 {1:22} 19.Rac1 {1:20} Qg6 {1:20} 20.Qxg6 {1:13} fxg6 {1:19} 21.Ne5 {1:11} Rf8 {1:18} 22.Nxg6 {1:09} Rxf2 {1:16} 23.Kh1 {1:04} Rf6 {1:02} 24.Ne7+ {1:04} Kf8 {1:01} 25.Nc6 {1:02} Bf2 {0:56} 26.Rf1 {0:58} d4 {0:55} 27.Nxa7 {0:57} Bb7+ {0:55} 28.Nc6 {0:47} Bxc6# {0:55}  {russmatney wins by Checkmate}\\\"]] [\\\"h1\\\" {:id \\\"gotta%20get%20my%20chess%20pecker%20pills%20goin\\\"} [:span \\\"gotta get my chess pecker pills goin\\\"]] [:p [:span \\\"5 hours a week\\\"]] [\\\"h1\\\" {:id \\\"Lichess%20needs%20to%20enable\\\"} [:span \\\"Lichess needs to enable\\\"]] [:p [:span \\\"Lichess needs to enable\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Learn from any games' mistakes\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"And let you drop games in\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Like Spotify for lichess\\\"]] [\\\"h1\\\" {:id \\\"Sometimes%20you%20resign%20when%20your%20only%20+0.2\\\"} [:span \\\"Sometimes you resign when your only +0.2\\\"]] [:p [:span \\\"Sometimes you resign when your only +0.2\\\"]] [\\\"h1\\\" {:id \\\"https://lichess.org/tFckm89gy9Bg%20Add%20to%20study\\\"} [:a {:href \\\"https://lichess.org/tFckm89gy9Bg\\\"} [:span \\\"https://lichess.org/tFckm89gy9Bg\\\"]] [:span \\\" Add to study\\\"]] [:p [:a {:href \\\"https://lichess.org/tFckm89gy9Bg\\\"} [:span \\\"https://lichess.org/tFckm89gy9Bg\\\"]] [:span \\\" Add to study\\\"]] [\\\"h1\\\" {:id \\\"chessing\\\"} [:span \\\"chessing\\\"]] [:p [:span \\\"Queens gambit\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Five minutes plus three\\\"]] [:p [:span \\\"Wish i could more easily add a game to a study\\\"]] [:p [:span \\\"\\\\\\\"Lichess Studies\\\\\\\"\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Make s lichess godot game\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Some thing for using lichess studies\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Read that Trello clone\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"And the todo app\\\"]] [:p [:a {:href \\\"https://lichess.org/km9ZDEBFLSLR\\\"} [:span \\\"https://lichess.org/km9ZDEBFLSLR\\\"]] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Spilt screen makes things easier!\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Just copy and paste\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"Keyboard is pretty great too\\\"]] [\\\"h1\\\" {:id \\\"study%20carlson%20recent%20long-ass%20game:%20https://lichess.org/study/GWPZqTsb/nrOoZer6\\\"} [:span \\\"study carlson recent long-ass game: \\\"] [:a {:href \\\"https://lichess.org/study/GWPZqTsb/nrOoZer6\\\"} [:span \\\"https://lichess.org/study/GWPZqTsb/nrOoZer6\\\"]]] [\\\"h1\\\" {:id \\\"switching%20to%20streaming%20teknql%20weekly?\\\"} [:span \\\"switching to streaming teknql weekly?\\\"]] [:p [:span \\\"maybe people want to stop by?\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"public and private meetings?\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"maybe do every other?\\\"]] [:p [:span \\\"if we had a calendar/agenda it would be cool\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"then tag games for one week or the next\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"and revisit them later in more or less detail\\\"] [#viewer-eval v/inspect-presented {:nextjournal/viewer {:name :html, :render-fn #viewer-fn v/html}, :nextjournal/value [:span \\\" \\\"]}] [:span \\\"start timing out some repeated games and such\\\"]] [\\\"h1\\\" {:id \\\"chess%20comments%20should%20be%20in-line\\\"} [:span \\\"chess comments should be in-line\\\"]] [:p [:span \\\"i.e. on the squares, on the board, not pulling us away from the board and the angles\\\"]] [\\\"h1\\\" {:id \\\"https://lichess.org/AMAYuiPr/black%20greatlau%20double%20check%20checkmate\\\"} [:a {:href \\\"https://lichess.org/AMAYuiPr/black\\\"} [:span \\\"https://lichess.org/AMAYuiPr/black\\\"]] [:span \\\" greatlau double check checkmate\\\"]] [:p [:a {:href \\\"https://lichess.org/AMAYuiPr/black\\\"} [:span \\\"https://lichess.org/AMAYuiPr/black\\\"]] [:span \\\" greatlau double check checkmate\\\"]] [\\\"h1\\\" {:id \\\"daniel%20naroditsky\\\"} [:span \\\"daniel naroditsky\\\"]] [\\\"h1\\\" {:id \\\"https://lichess.org/O3lslw7T/black\\\"} [:a {:href \\\"https://lichess.org/O3lslw7T/black\\\"} [:span \\\"https://lichess.org/O3lslw7T/black\\\"]]] [:p [:a {:href \\\"https://lichess.org/O3lslw7T/black\\\"} [:span \\\"https://lichess.org/O3lslw7T/black\\\"]]] [:p [:span \\\"fun bullet mate\\\"]] [\\\"h1\\\" {:id \\\"fun%20idea,%20fun%20counter%20tactic\\\"} [:span \\\"fun idea, fun counter tactic\\\"]] [:p [:a {:href \\\"https://lichess.org/3bNu3RFH/black#30\\\"} [:span \\\"https://lichess.org/3bNu3RFH/black#30\\\"]]]], :path [], :nextjournal/expanded-at {[] false, nil false}}\", :nextjournal/viewer {:name :html-}}, :path []} {:nextjournal/viewer {:name :clerk/result, :render-fn #viewer-fn v/result-viewer}, :nextjournal/value {:nextjournal/edn \"{:nextjournal/viewer {:name :html-, :render-fn #viewer-fn v/html}, :nextjournal/value [:div.viewer-markdown], :path [], :nextjournal/expanded-at {[] false, nil false}}\", :nextjournal/viewer {:name :html-}}, :path []}], :toc {:type :toc}, :toc-visibility false, :scope {:namespace :org-blog.pages.note}}, :path [], :nextjournal/expanded-at {[] false}}}"
+viewer.set_state(viewer.read_string(state))
+viewer.mount(document.getElementById('clerk'))
+</script></body></html>
