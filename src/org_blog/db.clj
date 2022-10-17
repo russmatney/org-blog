@@ -92,7 +92,7 @@
                                (some-> item :org/parent-ids first))]
           (if-not item-id
             (do
-              (println "no id/parent-id for link" item)
+              #_(println "[WARN] no id/parent-id for link" item)
               agg)
             (let [link-ids (->> item :org/links-to (map :link/id))]
               (reduce (fn [agg link-id]

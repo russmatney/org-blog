@@ -27,6 +27,7 @@
                           k)))
               first))))
 
+;; TODO debounce this system
 (defsys *org-watcher*
   :start
   (println "Starting *org-watcher*")

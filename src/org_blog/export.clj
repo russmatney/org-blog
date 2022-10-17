@@ -35,6 +35,17 @@
 (comment
   (recent-notes))
 
+(defn recent-unpublished-notes
+  "A list of recently edited files that have not necessarily been marked 'published'."
+  []
+  (->> (garden/all-garden-paths)
+       (sort-by (comp str fs/last-modified-time))
+       (reverse)
+       (map org-crud/path->nested-item)
+       (remove nil?)
+       (remove (fn [note] (notes/published-id? (:org/id note))))
+       (take recent-file-count)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ "linked ids"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -46,12 +57,11 @@
    (let [all-items (->> (notes/published-notes) (mapcat org-crud/nested-item->flattened-items))]
      (->> all-items (mapcat :org/links-to) (map :link/id)))))
 
+;; TODO figure out what we want here
 (defn collect-backlinked-ids
-  "Collects ids for all notes that link to the published notes."
   ([] (collect-linked-ids nil))
   ([_opts]
-   (let [all-items    (->> (notes/published-notes) (mapcat org-crud/nested-item->flattened-items))
-         all-item-ids (->> all-items (map :org/id)
+   (let [all-item-ids (->> (db/all-flattened-notes-by-id) keys
                            ;; we might be dropping inner org item links here
                            (remove nil?))]
      (->> all-item-ids (mapcat db/ids-linked-from)))))
@@ -273,14 +283,36 @@
                       [:div
                        {:class ["flex" "flex-col"]}
                        (for [link (-> item :org/links-to)]
-                         [:span
-                          {:class ["font-mono"
-                                   (if (:published item)
-                                     "text-emerald-400"
-                                     "text-red-400")]}
-                          (str
-                            (:link/text link) " -> " (:org/name link)
-                            (when-not (:published item) " (unpublished)"))])])
+                         [:div
+                          [:span
+                           {:class ["font-mono"
+                                    (if (:published item)
+                                      "text-emerald-400"
+                                      "text-red-400")]}
+                           (str
+                             (:link/text link) " -> " (:org/name link)
+                             (when-not (:published link) " (unpublished)"))]
+                          (when-not (:published link)
+                            [:button
+                             {:class    ["bg-blue-700" "hover:bg-blue-600"
+                                         "text-slate-300" "font-bold"
+                                         "py-2" "px-4" "m-1"
+                                         "rounded"]
+                              :on-click (fn [_] (v/clerk-eval
+                                                  `(org-blog.export/publish-note!
+                                                     ~(-> link :org/short-path))))}
+                             "publish"])
+                          (when (:published link)
+                            [:button
+                             {:class    ["bg-red-800" "hover:bg-red-500"
+                                         "text-slate-300" "font-bold"
+                                         "py-2" "px-4" "m-1"
+                                         "rounded"]
+                              :on-click (fn [_] (v/clerk-eval
+                                                  `(org-blog.export/unpublish-note!
+                                                     ~(-> link :org/short-path))))}
+                             "unpublish"])
+                          ])])
 
                     (when (-> item :org/urls seq)
                       [:div
@@ -312,7 +344,12 @@
                       (dates/parse-time-string)
                       (t/format (t/formatter "MMM d YY" ))))
       (assoc :name-str (item/item->name-str note))
-      (update :org/links-to (fn [items] (map merge-item-into-link items)))
+      (update :org/links-to (fn [items]
+                              (->>
+                                items
+                                (map merge-item-into-link)
+                                ;; (map decorate-note)
+                                )))
       (update :org/items (fn [items] (map decorate-note items)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -325,11 +362,21 @@
   ::clerk/width    :wide}
 (->>
   (recent-notes)
-  ;; already sorted by recency
   (take 5)
   (map decorate-note)
   (sort-by :published)
   (into []))
+
+;; ### recently modified (unpublished only)
+
+^{::clerk/no-cache true
+  ::clerk/viewer   note-publish-buttons
+  ::clerk/width    :wide}
+(->>
+  (recent-unpublished-notes)
+  (map decorate-note)
+  (into []))
+
 
 ;; ### unpublished, linked items
 
@@ -340,7 +387,6 @@
      (remove (fn [note] (notes/published-id? (:org/id note))))
      (take 5)
      (map decorate-note)
-     (sort-by :published)
      (into []))
 
 ;; ### unpublished, backlinked items
@@ -352,7 +398,6 @@
      (remove (fn [note] (notes/published-id? (:org/id note))))
      (take 5)
      (map decorate-note)
-     (sort-by :published)
      (into []))
 
 
