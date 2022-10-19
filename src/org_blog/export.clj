@@ -2,10 +2,8 @@
   {:nextjournal.clerk/visibility {:code :hide :result :hide}}
   (:require
    [nextjournal.clerk :as clerk]
-   [babashka.fs :as fs]
    [org-crud.core :as org-crud]
 
-   [garden.core :as garden]
    [ralphie.notify :as notify]
    [ralphie.emacs :as emacs]
 
@@ -22,29 +20,35 @@
 
 (def recent-file-count 14)
 
-(defn recent-notes
+(defn calc-recent-notes
   "A list of recently edited files that have not necessarily been marked 'published'."
   []
-  (->> (garden/all-garden-paths)
-       (sort-by (comp str fs/last-modified-time))
+  (->> (db/all-notes)
+       (sort-by :file/last-modified)
        (reverse)
-       (take recent-file-count)
-       (map org-crud/path->nested-item)
-       (remove nil?)))
+       (take recent-file-count)))
 
 (comment
-  (recent-notes))
+  (calc-recent-notes))
 
-(defn recent-unpublished-notes
+(defn calc-recent-unpublished-notes
   "A list of recently edited files that have not necessarily been marked 'published'."
   []
-  (->> (garden/all-garden-paths)
-       (sort-by (comp str fs/last-modified-time))
+  (->> (db/all-notes)
+       (sort-by :file/last-modified)
        (reverse)
-       (map org-crud/path->nested-item)
-       (remove nil?)
        (remove (fn [note] (notes/published-id? (:org/id note))))
        (take recent-file-count)))
+
+(comment
+  (calc-recent-unpublished-notes))
+
+^::clerk/no-cache
+(def recent-notes (calc-recent-notes))
+
+^::clerk/no-cache
+(def recent-unpublished-notes (calc-recent-unpublished-notes))
+(def published-notes (notes/published-notes))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ "linked ids"
@@ -54,7 +58,7 @@
   "Collects ids that the published notes link to."
   ([] (collect-linked-ids nil))
   ([_opts]
-   (let [all-items (->> (notes/published-notes) (mapcat org-crud/nested-item->flattened-items))]
+   (let [all-items (->> published-notes (mapcat org-crud/nested-item->flattened-items))]
      (->> all-items (mapcat :org/links-to) (map :link/id)))))
 
 ;; TODO figure out what we want here
@@ -82,13 +86,14 @@
                        (map (fn [[id ct]]
                               (assoc ((db/notes-by-id) id) :linked-count ct)))))
 
-^{::clerk/no-cache true}
-(def backlinked-items (->> (collect-backlinked-ids)
-                           frequencies
-                           (sort-by second >)
-                           (map (fn [[id ct]]
-                                  (assoc ((db/notes-by-id) id)
-                                         :backlinked-count ct)))))
+;; ^{::clerk/no-cache true}
+;; (def backlinked-items (->> (collect-backlinked-ids)
+;;                            frequencies
+;;                            (sort-by second >)
+;;                            (map (fn [[id ct]]
+;;                                   (assoc ((db/notes-by-id) id)
+;;                                          :backlinked-count ct)))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ actions
@@ -357,11 +362,10 @@
 
 ;; ### recently modified
 
-^{::clerk/no-cache true
-  ::clerk/viewer   note-publish-buttons
-  ::clerk/width    :wide}
+^{::clerk/viewer note-publish-buttons
+  ::clerk/width  :wide}
 (->>
-  (recent-notes)
+  recent-notes
   (take 5)
   (map decorate-note)
   (sort-by :published)
@@ -369,20 +373,18 @@
 
 ;; ### recently modified (unpublished only)
 
-^{::clerk/no-cache true
-  ::clerk/viewer   note-publish-buttons
-  ::clerk/width    :wide}
+^{::clerk/viewer note-publish-buttons
+  ::clerk/width  :wide}
 (->>
-  (recent-unpublished-notes)
+  recent-unpublished-notes
   (map decorate-note)
   (into []))
 
 
 ;; ### unpublished, linked items
 
-^{::clerk/no-cache true
-  ::clerk/viewer   note-publish-buttons
-  ::clerk/width    :wide}
+^{::clerk/viewer note-publish-buttons
+  ::clerk/width  :wide}
 (->> linked-items
      (remove (fn [note] (notes/published-id? (:org/id note))))
      (take 5)
@@ -391,14 +393,14 @@
 
 ;; ### unpublished, backlinked items
 
-^{::clerk/no-cache true
-  ::clerk/viewer   note-publish-buttons
-  ::clerk/width    :wide}
-(->> backlinked-items
-     (remove (fn [note] (notes/published-id? (:org/id note))))
-     (take 5)
-     (map decorate-note)
-     (into []))
+;; ^{::clerk/no-cache true
+;;   ::clerk/viewer   note-publish-buttons
+;;   ::clerk/width    :wide}
+;; (->> backlinked-items
+;;      (remove (fn [note] (notes/published-id? (:org/id note))))
+;;      (take 5)
+;;      (map decorate-note)
+;;      (into []))
 
 
 ;; ### frequent tags
@@ -407,7 +409,7 @@
    :width       650
    :height      500
    :description "A simple donut chart with embedded data."
-   :data        {:values (->> (notes/published-notes)
+   :data        {:values (->> published-notes
                               (mapcat item/item->all-tags)
                               frequencies
                               (sort-by second >)
@@ -424,22 +426,22 @@
 
 
 ;; ### published items
-^{::clerk/no-cache true}
-(clerk/table
-  {::clerk/width :full}
-  (or
-    (->> (notes/published-notes)
-         (map select-org-keys)
-         seq)
-    [{:no-data nil}]))
+;; ^{::clerk/no-cache true}
+;; (clerk/table
+;;   {::clerk/width :full}
+;;   (or
+;;     (->> published-notes
+;;          (map select-org-keys)
+;;          seq)
+;;     [{:no-data nil}]))
 
-;; ### unpublished, linked items
-^{::clerk/no-cache true}
-(clerk/table
-  {::clerk/width :full}
-  (or
-    (->> linked-items
-         (remove (fn [{:keys [org/id]}] (notes/published-id? id)))
-         (map select-org-keys)
-         seq)
-    [{:no-data nil}]))
+;; ;; ### unpublished, linked items
+;; ^{::clerk/no-cache true}
+;; (clerk/table
+;;   {::clerk/width :full}
+;;   (or
+;;     (->> linked-items
+;;          (remove (fn [{:keys [org/id]}] (notes/published-id? id)))
+;;          (map select-org-keys)
+;;          seq)
+;;     [{:no-data nil}]))
