@@ -2,13 +2,51 @@
 
 Hopefully the last time I overengineer my blog.
 
+I was curious if I could combine the clerk devloop with a blog based on an
+org-roam mind-garden - this repo is that experiment!
+
+You can see the current state of it here: https://danger.russmatney.com/
+
 - A static blog generator written in clojure
-- Pulls content primarily from an org(-roam) directory
-- Uses clerk to define and render the content
-  - Plus tools for visualizations, images, etc
-- Uses org-crud to parse (and crud) the org content
-  - Supports an interactive review process
-    - reading+writing to the org files
-    - adding additional tags
-    - linking notes
-- Depends on clawe (initially, anyway)
+- Pulls content primarily from an org ([[https://github.com/org-roam/org-roam][org-roam]]) directory
+- Uses [[https://github.com/nextjournal/clerk][clerk]] to define and render the pages (as notebooks) via clojure dynamic vars
+  - The ~org-blog.pages.*~ namespaces define the pages and provide a nice dev-loop when working on them
+- Uses [[https://github.com/russmatney/org-crud][russmatney/org-crud]] to parse the org content
+
+* Status: experimental
+This is just getting started - plenty of quirks and details left to iron out.
+
+For now I'm enjoying the repl feedback loop via clerk and the org-watcher (see
+~org-blog.watcher~, which calls ~clerk/recompute!~ when an org-file is changed).
+
+** Quirks and details
+- The static clerk frontend pages are not necessarily SEO/crawler friendly -
+  the static clerk frontends are big data blobs that run via scittle when the
+  page loads. (I'm assuming this, but maybe crawlers run/eval js these days?)
+- The header is kind of hacked into the base hiccup/html (See the
+  ~org-blog.render~ namespace). The devloop for working with this is not great
+  at the moment, as it only shows up in the static export. Probably a new base
+  notebook viewer should be written for the entire blog, to provide some new
+  theming (so we're not just reusing the clerk notebook styles). I've taken a
+  shot or two at this, but don't fully grok it yet - viewers seem to be coupled
+  tightly to the ~clerk.sci-viewer~ implementation, so that needs to be learned
+  to implement a new blog-notebook-viewer.
+- The clerk pages are rendered for each note via clojure's dynamic bindings,
+  which might be kind of crazy(?).
+- Namespaces and functionality from [[https://github.com/russmatney/clawe][russmatney/clawe]] are baked in for now -
+  these were convenient to get things going, but would hopefully be brought into
+  this repo and that dependency should be dropped.
+- Indexes, navigation, and backlinks are a WIP. There is only a last-modified
+  index for now - tag indexes and backlinking content should be added/improved.
+
+** Fairly opinionated
+In general, the way this works is fairly opinionated at the moment - the daily
+notes only publish sub-items that have tags, and certain tags are filtered completely.
+
+The notes need to be opted-into via the ~org-blog.export~ miniapp (run
+clerk/show! in that namespace to render some buttons for 'publishing' recent
+notes). I hope to build this and other namespaces into clerk notebooks that
+make managing the content easier.
+
+Publishing right now requires the repl - I call ~org-blog.publish/publish-all~
+to create the latest ~./public~ dir.
