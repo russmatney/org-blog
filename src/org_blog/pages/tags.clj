@@ -41,7 +41,7 @@
      [:a {:id tag}
       (or tag "Untagged")]]]
 
-   (->> notes (map item/note-row) (into [:<>]))
+   (->> notes (map #(item/note-row % {:tags #{tag}})) (into [:<>]))
    [:hr]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

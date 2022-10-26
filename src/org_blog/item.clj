@@ -49,12 +49,16 @@
        (->> tags (map #(str ":" %)) (string/join "\t"))))))
 
 (defn item->name-str
-  "Returns a seq of strings"
   ([item] (item->name-str item nil))
   ([item opts]
    (let [opts    (merge {:id->link-uri uri/id->link-uri} opts)
          [title] (org-crud.markdown/item->md-body item opts)]
      title)))
+
+(defn item->plain-title [item]
+  (-> item :org/name
+      (org-crud.markdown/org-line->md-line
+        {:id->link-uri (fn [_] nil)})))
 
 (defn item->md-content
   "Returns a seq of strings"
@@ -103,29 +107,59 @@
 ;; note row
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn note-row [note]
-  (let [all-tags (->> (item->all-tags note) sort)]
-    [:div
-     {:class ["flex" "flex-row" "justify-between"]}
-     [:h3
-      {:class ["hover:underline" "whitespace-nowrap"
-               "pr-2"]}
-      [:a
-       {:class ["cursor-pointer"]
-        :href  (uri/id->link-uri (:org/id note))}
-       (:org/name note)]]
-     ;; TODO expose daily headlines
-
-     ;; [:div
-     ;;  {:class ["font-mono"]}
-     ;;  (->> note :file/last-modified dates/parse-time-string
-     ;;       (t/format (t/formatter "hh:mma")))]
-
-     ;; TODO colorize these tags with
+(defn tags-list
+  ([note] (tags-list note nil))
+  ([note tags]
+   (let [tags (or tags (:org/tags note))]
      (->>
-       all-tags
+       tags
        (map #(str "#" %))
        (map-indexed
          (fn [_i tag]
-           [:a {:href (str "/tags.html" tag)} tag]))
-       (into [:div {:class ["font-mono"]}]))]))
+           [:a {:href  (str "/tags.html" tag)
+                :class ["font-mono"]} tag]))
+       (into [:div])))))
+
+(defn note-row
+  ([note] (note-row note nil))
+  ([note opts]
+   (let [is-daily? (re-seq #"/daily/" (:org/source-file note))
+         children-with-tags
+         (if is-daily?
+           (cond->> (:org/items note)
+             true
+             (filter item-has-any-tags)
+             (:tags opts)
+             (filter #(item-has-tags % (:tags opts))))
+           nil)]
+     [:div
+      {:class ["flex" "flex-col"]}
+      [:div
+       {:class ["flex" "flex-row" "justify-between"]}
+       [:h3
+        {:class ["hover:underline" "whitespace-nowrap"
+                 "pr-2"]}
+        [:a
+         {:class ["cursor-pointer"]
+          :href  (uri/id->link-uri (:org/id note))}
+         (:org/name note)]]
+
+       ;; [:div
+       ;;  {:class ["font-mono"]}
+       ;;  (->> note :file/last-modified dates/parse-time-string
+       ;;       (t/format (t/formatter "hh:mma")))]
+
+       ;; TODO colorize these tags with
+       (tags-list note
+                  (->> (item->all-tags note) sort))]
+
+      (->> children-with-tags
+           (map (fn [ch]
+                  (let [t    (item->plain-title ch)
+                        tags (:org/tags ch)]
+                    [:div
+                     {:class ["pl-4"
+                              "flex" "flex-row" "justify-between"]}
+                     ;; TODO ideally this is a link to an anchor tag for the daily
+                     [:h4 t]
+                     (tags-list ch)]))))])))
