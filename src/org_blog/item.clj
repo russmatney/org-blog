@@ -155,8 +155,7 @@
 
       (->> children-with-tags
            (map (fn [ch]
-                  (let [t    (item->plain-title ch)
-                        tags (:org/tags ch)]
+                  (let [t (item->plain-title ch)]
                     [:div
                      {:class ["pl-4"
                               "flex" "flex-row" "justify-between"]}

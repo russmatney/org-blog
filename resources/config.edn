@@ -33,10 +33,13 @@
   "garden/camera_control.org"
   {:org/short-path "garden/camera_control.org"},
   "garden/fennel.org" {:org/short-path "garden/fennel.org"},
+  "garden/leaf_runner.org" {:org/short-path "garden/leaf_runner.org"},
   "garden/strangeloop.org" {:org/short-path "garden/strangeloop.org"},
   "garden/towerfall.org" {:org/short-path "garden/towerfall.org"},
   "garden/procedural_level_generation.org"
   {:org/short-path "garden/procedural_level_generation.org"},
+  "garden/too_much_fun_with_naming.org"
+  {:org/short-path "garden/too_much_fun_with_naming.org"},
   "daily/2022-10-08.org" {:org/short-path "daily/2022-10-08.org"},
   "garden/game_feel.org" {:org/short-path "garden/game_feel.org"},
   "garden/dev_log.org" {:org/short-path "garden/dev_log.org"},
@@ -49,6 +52,7 @@
   "garden/tauri_as_a_simple_native_web_view.org"
   {:org/short-path "garden/tauri_as_a_simple_native_web_view.org"},
   "garden/unlockables.org" {:org/short-path "garden/unlockables.org"},
+  "garden/celeste.org" {:org/short-path "garden/celeste.org"},
   "garden/interactive_commands_m_x.org"
   {:org/short-path "garden/interactive_commands_m_x.org"},
   "garden/feedback_loops.org"
@@ -69,6 +73,7 @@
   {:org/short-path "garden/visualization.org"},
   "garden/what_is_capture.org"
   {:org/short-path "garden/what_is_capture.org"},
+  "garden/bb_cli.org" {:org/short-path "garden/bb_cli.org"},
   "garden/streets_of_rage.org"
   {:org/short-path "garden/streets_of_rage.org"},
   "garden/ricing_your_distro.org"
@@ -88,21 +93,31 @@
   "workspaces/chess.org" {:org/short-path "workspaces/chess.org"},
   "garden/russmatney_clawe.org"
   {:org/short-path "garden/russmatney_clawe.org"},
+  "garden/clawe_s_debug_namespace_via_bb_cli.org"
+  {:org/short-path "garden/clawe_s_debug_namespace_via_bb_cli.org"},
   "garden/clojure.org" {:org/short-path "garden/clojure.org"},
+  "garden/clawe_refactor_notes.org"
+  {:org/short-path "garden/clawe_refactor_notes.org"},
   "garden/blog_about.org" {:org/short-path "garden/blog_about.org"},
   "garden/animal_crossing.org"
   {:org/short-path "garden/animal_crossing.org"},
   "garden/org_mode.org" {:org/short-path "garden/org_mode.org"},
   "garden/things_i_like_in_games.org"
   {:org/short-path "garden/things_i_like_in_games.org"},
+  "daily/2022-10-20.org" {:org/short-path "daily/2022-10-20.org"},
   "garden/games_i_love.org"
   {:org/short-path "garden/games_i_love.org"},
+  "garden/couch_multiplayer.org"
+  {:org/short-path "garden/couch_multiplayer.org"},
+  "daily/2022-10-25.org" {:org/short-path "daily/2022-10-25.org"},
   "garden/dino.org" {:org/short-path "garden/dino.org"},
   "garden/ocarina_of_time.org"
   {:org/short-path "garden/ocarina_of_time.org"},
   "garden/ink.org" {:org/short-path "garden/ink.org"},
   "garden/russmatney_org_crud.org"
   {:org/short-path "garden/russmatney_org_crud.org"},
+  "garden/naming_and_cache_invalidation.org"
+  {:org/short-path "garden/naming_and_cache_invalidation.org"},
   "garden/hidden_in_plain_sight.org"
   {:org/short-path "garden/hidden_in_plain_sight.org"},
   "daily/2022-10-11.org" {:org/short-path "daily/2022-10-11.org"},
@@ -113,6 +128,9 @@
   {:org/short-path "garden/cider_clojure.org"},
   "garden/language_path.org"
   {:org/short-path "garden/language_path.org"},
+  "garden/proposal_local_curl_request_caching_in_babashka_neil.org"
+  {:org/short-path
+   "garden/proposal_local_curl_request_caching_in_babashka_neil.org"},
   "garden/til.org" {:org/short-path "garden/til.org"},
   "garden/yabai.org" {:org/short-path "garden/yabai.org"},
   "daily/2022-10-10.org" {:org/short-path "daily/2022-10-10.org"},

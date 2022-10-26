@@ -7,7 +7,6 @@
 
    [org-blog.item :as item]
    [org-blog.notes :as notes]
-   [org-blog.uri :as uri]
    [clojure.set :as set]))
 
 (def ^:dynamic *notes* (notes/published-notes))
