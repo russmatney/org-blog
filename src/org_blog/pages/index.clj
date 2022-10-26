@@ -6,8 +6,7 @@
    [dates.tick :as dates]
 
    [org-blog.item :as item]
-   [org-blog.notes :as notes]
-   [org-blog.uri :as uri]))
+   [org-blog.notes :as notes]))
 
 (def ^:dynamic *notes* (notes/published-notes))
 
@@ -21,27 +20,6 @@
 (comment
   (notes-by-day *notes*))
 
-(defn note-row [note]
-  (let [all-tags (item/item->all-tags note)]
-    [:div
-     {:class ["flex" "flex-row" "justify-between"]}
-     [:h3
-      {:class ["hover:underline"]}
-      [:a
-       {:class ["cursor-pointer"]
-        :href  (uri/id->link-uri (:org/id note))}
-       (:org/name note)]]
-
-     ;; [:div
-     ;;  {:class ["font-mono"]}
-     ;;  (->> note :file/last-modified dates/parse-time-string
-     ;;       (t/format (t/formatter "hh:mma")))]
-
-     (->>
-       all-tags
-       (map #(str "#" % " "))
-       (into [:div {:class ["font-mono"]}]))]))
-
 (defn day-block [{:keys [day notes]}]
   [:div
    [:div
@@ -50,7 +28,7 @@
      {:class ["pb-2"]}
      (t/format (t/formatter "EEEE, MMM dd") day)]]
 
-   (->> notes (map note-row) (into [:<>]))
+   (->> notes (map item/note-row) (into [:<>]))
    [:hr]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -59,7 +37,7 @@
 (clerk/html
   [:div
    {:class ["flex" "flex-row" "justify-center"]}
-   [:h2 {:class ["font-mono"]} "All"]])
+   [:h2 {:class ["font-mono"]} "Notes By Last Modified"]])
 
 ^{::clerk/no-cache true}
 (clerk/html

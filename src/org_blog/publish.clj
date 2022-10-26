@@ -28,8 +28,13 @@
             (str "public" (uri/note->uri note))
             'org-blog.pages.note))))))
 
-(defn publish-index []
-  (println "[EXPORT] exporting index.")
+(defn publish-index-by-tag []
+  (println "[EXPORT] exporting index-by-tag.")
+  (render/path+ns-sym->spit-static-html
+    (str "public/tags.html") 'org-blog.pages.tags))
+
+(defn publish-index-by-last-modified []
+  (println "[EXPORT] exporting index-by-last-modified.")
   (render/path+ns-sym->spit-static-html
     (str "public/index.html") 'org-blog.pages.index))
 
@@ -37,9 +42,8 @@
   ;; TODO delete notes that aren't here?
   []
   (publish-notes)
-  (publish-index))
+  (publish-index-by-tag)
+  (publish-index-by-last-modified))
 
 (comment
-  (publish-notes)
-  (publish-index)
   (publish-all))

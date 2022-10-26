@@ -98,3 +98,34 @@
       (concat
         ["---" "" "# Backlinks" ""]
         blink-lines))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; note row
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn note-row [note]
+  (let [all-tags (->> (item->all-tags note) sort)]
+    [:div
+     {:class ["flex" "flex-row" "justify-between"]}
+     [:h3
+      {:class ["hover:underline" "whitespace-nowrap"
+               "pr-2"]}
+      [:a
+       {:class ["cursor-pointer"]
+        :href  (uri/id->link-uri (:org/id note))}
+       (:org/name note)]]
+     ;; TODO expose daily headlines
+
+     ;; [:div
+     ;;  {:class ["font-mono"]}
+     ;;  (->> note :file/last-modified dates/parse-time-string
+     ;;       (t/format (t/formatter "hh:mma")))]
+
+     ;; TODO colorize these tags with
+     (->>
+       all-tags
+       (map #(str "#" %))
+       (map-indexed
+         (fn [_i tag]
+           [:a {:href (str "/tags.html" tag)} tag]))
+       (into [:div {:class ["font-mono"]}]))]))
