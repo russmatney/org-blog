@@ -51,8 +51,7 @@
    [:div
     {:class "pl-4"}
     [:h3
-     [:a {:href "/last-modified.html"} "...by Last Modified"
-      ]]
+     [:a {:href "/last-modified.html"} "...by Last Modified"]]
     [:h3
      [:a {:href "/tags.html"} "...by Tag"
       ;; TODO include 5 most common tags
@@ -64,14 +63,13 @@
    (->> (notes/published-notes)
         (filter (comp seq
                       #(set/intersection
-                         #{"project" "projects" "repo"} %)
+                         #{"project" "projects"} %)
                       :org/tags))
+        ;; TODO sort projects, include tags
         (map (fn [note]
                ;; TODO include link to repo
                ;; TODO include short description
-               [:h3
-                [:a {:href (uri/note->uri note)}
-                 (:org/name note)]]))
+               (item/note-row note)))
         (into [:div {:class "pl-4"}]))])
 
 ^{::clerk/no-cache true}
@@ -81,5 +79,6 @@
    [:div
     (->>
       (notes-by-day *notes*)
+      (take 5) ;; 5 most recent day blocks
       (map (fn [[day notes]] (day-block {:day day :notes notes})))
       (into [:<>]))]])
