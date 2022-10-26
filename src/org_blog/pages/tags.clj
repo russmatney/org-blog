@@ -37,7 +37,9 @@
    [:div
     {:class ["flex" "flex-row" "justify-center"]}
     [:h3
-     {:class ["pb-2"]} (or tag "Untagged")]]
+     {:class ["pb-2"]}
+     [:a {:id tag}
+      (or tag "Untagged")]]]
 
    (->> notes (map item/note-row) (into [:<>]))
    [:hr]])
