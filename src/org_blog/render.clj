@@ -7,8 +7,6 @@
    [nextjournal.clerk.eval :as clerk-eval]
    [nextjournal.clerk.view :as clerk-view]
    [nextjournal.clerk.viewer :as clerk-viewer]
-   [zprint.core :as zp]
-   [clojure.walk :as walk]
    [clojure.string :as string]))
 
 (defn eval-notebook
@@ -53,29 +51,6 @@
             :href  about-link-uri} "about"]]]]]
    [:hr]])
 
-(comment
-  (zp/zprint nil :help)
-  (zp/zprint nil :explain)
-  (zp/zprint-str
-    [{:some-edn "some valuevaluevaluevaluevaluevalue"}
-     {:some-edn "some valuevaluevaluevaluevaluevaluevalue"}
-     {:some-edn "some value"}
-     {:some-edn "some value"}
-     {:some-edn "some value"}
-     {:some-edn "some value"}] 80)
-  (zp/zprint-str "this is my huge string
-with new lines
-and line breaks"))
-
-(defn pp-js-str
-  "Converts the passed state to a js expression
-  that creates the stringified state.
-  Supports better git-diffs for updated post content."
-  [state]
-  (-> state
-      (walk/postwalk-demo)
-      (zp/zprint-str {:parse-string? true})))
-
 (defn ->html [{:keys [conn-ws?] :or {conn-ws? true}} state]
   (hiccup/html5
     {:class "overflow-hidden min-h-screen"}
@@ -87,7 +62,8 @@ and line breaks"))
      (header)
      [:div#clerk]
      [:script "let viewer = nextjournal.clerk.sci_viewer
-\n\nlet state = \"" (-> state pp-js-str) "\"
+let state =  " (-> state clerk-viewer/->edn pr-str
+                       #_(string/replace #" " " \\\\\n")) "
 viewer.set_state(viewer.read_string(state))
 viewer.mount(document.getElementById('clerk'))\n"
       (when conn-ws?
