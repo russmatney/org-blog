@@ -72,6 +72,21 @@
         (into [:div {:class "pl-4"}]))])
 
 ^{::clerk/no-cache true}
+#_(clerk/html
+    [:div
+     [:h3 "Commits"]
+     (->> (notes/published-notes)
+          (filter (comp seq
+                        #(set/intersection
+                           #{"project" "projects"} %)
+                        :org/tags))
+          (filter :org.prop/repo)
+          (map (fn [note]
+                 (let [repo (:org.prop/repo note)]
+                   [:h3 repo])))
+          (into [:div {:class "pl-4"}]))])
+
+^{::clerk/no-cache true}
 (clerk/html
   [:div
    [:h3 "Recently modified"]

@@ -10,6 +10,9 @@
    [org-blog.publish :as publish]))
 
 (comment
+  ;; TODO consider running this after clawe's suggested neil dep add
+  ;; would need a cider/fire or cider/eval namespace that can connect to the running repl
+  ;; from the one-off babashka process, that is
   (repl/sync-libs!))
 
 ;; go ahead and start this whenever the repl starts up

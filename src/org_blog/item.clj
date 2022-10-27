@@ -89,10 +89,10 @@
                      [(str "### [" link-name "](" (-> item :org/id uri/id->link-uri) ")")]
                      ;; disabled backlink content for now b/c for links from dailies
                      ;; that don't have parents, too much is pulled and unraveled
-                     #_(org-crud.markdown/item->md-body
-                         item
-                         {:id->link-uri uri/id->link-uri}
-                         )))))))
+                     (org-crud.markdown/item->md-body
+                       item
+                       {:id->link-uri uri/id->link-uri}
+                       )))))))
 
 (defn backlinks
   "Returns markdown representing a list of backlinks for given `:org/id`"
