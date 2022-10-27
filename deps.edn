@@ -7,5 +7,8 @@
          io.github.nextjournal/clerk {:mvn/version "0.11.603"}
          teknql/systemic             {:mvn/version "0.2.1"}
          aero/aero                   {:mvn/version "1.1.6"}
-         juxt/dirwatch               {:mvn/version "0.2.5"}}
+         juxt/dirwatch               {:mvn/version "0.2.5"}
+         kkinnear/zprint {:git/url "https://github.com/kkinnear/zprint"
+                          :git/tag "1.2.5-alpha1"
+                          :git/sha "15ea82a"}}
  :aliases {}}

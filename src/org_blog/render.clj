@@ -6,7 +6,9 @@
    [nextjournal.clerk.analyzer :as clerk-analyzer]
    [nextjournal.clerk.eval :as clerk-eval]
    [nextjournal.clerk.view :as clerk-view]
-   [nextjournal.clerk.viewer :as clerk-viewer]))
+   [nextjournal.clerk.viewer :as clerk-viewer]
+   [zprint.core :as zp]
+   [clojure.walk :as walk]))
 
 (defn eval-notebook
   "Evaluates the notebook identified by its `ns-sym`"
@@ -50,6 +52,20 @@
             :href  about-link-uri} "about"]]]]]
    [:hr]])
 
+(comment
+  (zp/zprint nil :help)
+  (zp/zprint nil :explain)
+  (zp/zprint-str
+    [{:some-edn "some valuevaluevaluevaluevaluevalue"}
+     {:some-edn "some valuevaluevaluevaluevaluevaluevalue"}
+     {:some-edn "some value"}
+     {:some-edn "some value"}
+     {:some-edn "some value"}
+     {:some-edn "some value"}] 80)
+  (zp/zprint-str "this is my huge string
+with new lines
+and line breaks"))
+
 (defn ->html [{:keys [conn-ws?] :or {conn-ws? true}} state]
   (hiccup/html5
     {:class "overflow-hidden min-h-screen"}
@@ -61,7 +77,11 @@
      (header)
      [:div#clerk]
      [:script "let viewer = nextjournal.clerk.sci_viewer
-let state = " (-> state clerk-viewer/->edn pr-str) "
+\n\nlet state = " (-> state clerk-viewer/->edn
+                      #_(walk/postwalk)
+                      (zp/zprint-str {:parse-string-all? true
+                                      :parse             {:interpose "\n\n"}})
+                      pr-str)"
 viewer.set_state(viewer.read_string(state))
 viewer.mount(document.getElementById('clerk'))\n"
       (when conn-ws?

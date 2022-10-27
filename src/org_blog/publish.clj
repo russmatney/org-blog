@@ -36,6 +36,11 @@
 (defn publish-index-by-last-modified []
   (println "[EXPORT] exporting index-by-last-modified.")
   (render/path+ns-sym->spit-static-html
+    (str "public/last-modified.html") 'org-blog.pages.last-modified))
+
+(defn publish-index []
+  (println "[EXPORT] exporting index.")
+  (render/path+ns-sym->spit-static-html
     (str "public/index.html") 'org-blog.pages.index))
 
 (defn publish-all
@@ -43,7 +48,9 @@
   []
   (publish-notes)
   (publish-index-by-tag)
-  (publish-index-by-last-modified))
+  (publish-index-by-last-modified)
+  (publish-index)
+  )
 
 (comment
   (publish-all))
