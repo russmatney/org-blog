@@ -28,22 +28,24 @@
      {:class ["pb-2"]}
      (t/format (t/formatter "EEEE, MMM dd") day)]]
 
-   (->> notes (map item/note-row) (into [:<>]))
+   (when (seq notes)
+     (->> notes (map item/note-row) (into [:div])))
    [:hr]])
+
+(defn page []
+  [:div
+   [:div
+    {:class ["flex" "flex-row" "justify-center"]}
+    [:h2 {:class ["font-mono"]} "Notes By Date Modified"]]
+   [:div
+    [:div
+     (->>
+       (notes-by-day *notes*)
+       (map (fn [[day notes]] (day-block {:day day :notes notes})))
+       (into [:div]))]]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
 
-(clerk/html
-  [:div
-   {:class ["flex" "flex-row" "justify-center"]}
-   [:h2 {:class ["font-mono"]} "Notes By Last Modified"]])
-
 ^{::clerk/no-cache true}
-(clerk/html
-  [:div
-   [:div
-    (->>
-      (notes-by-day *notes*)
-      (map (fn [[day notes]] (day-block {:day day :notes notes})))
-      (into [:<>]))]])
+(clerk/html (page))

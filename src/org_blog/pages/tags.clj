@@ -41,7 +41,8 @@
      [:a {:id tag}
       (or tag "Untagged")]]]
 
-   (->> notes (map #(item/note-row % {:tags #{tag}})) (into [:<>]))
+   (when (seq notes)
+     (->> notes (map #(item/note-row % {:tags #{tag}})) (into [:div])))
    [:hr]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -59,4 +60,4 @@
     (->>
       (notes-by-tag *notes*)
       (map (fn [[tag notes]] (tag-block {:tag tag :notes notes})))
-      (into [:<>]))]])
+      (into [:div]))]])

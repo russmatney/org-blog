@@ -29,7 +29,8 @@
      {:class ["pb-2"]}
      (t/format (t/formatter "EEEE, MMM dd") day)]]
 
-   (->> notes (map item/note-row) (into [:<>]))
+   (when (seq notes)
+     (->> notes (map item/note-row) (into [:div])))
    [:hr]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -95,4 +96,4 @@
       (notes-by-day *notes*)
       (take 5) ;; 5 most recent day blocks
       (map (fn [[day notes]] (day-block {:day day :notes notes})))
-      (into [:<>]))]])
+      (into [:div]))]])

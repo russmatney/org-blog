@@ -111,14 +111,15 @@
   ([note] (tags-list note nil))
   ([note tags]
    (let [tags (or tags (:org/tags note))]
-     (->>
-       tags
-       (map #(str "#" %))
-       (map-indexed
-         (fn [_i tag]
-           [:a {:href  (str "/tags.html" tag)
-                :class ["font-mono"]} tag]))
-       (into [:div])))))
+     (when (seq tags)
+       (->>
+         tags
+         (map #(str "#" %))
+         (map-indexed
+           (fn [_i tag]
+             [:a {:href  (str "/tags.html" tag)
+                  :class ["font-mono"]} tag]))
+         (into [:div]))))))
 
 (defn note-row
   ([note] (note-row note nil))
