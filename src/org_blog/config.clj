@@ -32,11 +32,14 @@
 (defonce !export-mode (atom nil))
 (defn export-mode? [] @!export-mode)
 (defn toggle-export-mode [] (swap! !export-mode not))
+(defn set-export-mode [v] (reset! !export-mode v))
 
 (comment
   (not nil)
   (export-mode?)
-  (toggle-export-mode))
+  (toggle-export-mode)
+  (set-export-mode true)
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; note defs

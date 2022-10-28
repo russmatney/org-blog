@@ -68,7 +68,7 @@
 
 (def on-org-file-change
   (debounce
-    (fn [_event]
+    (fn [event]
       ;; reparse org files
       (db/refresh-notes)
 
@@ -76,8 +76,8 @@
       (clerk/recompute!)
 
       (when (config/export-mode?)
-        ;; TODO only publish the edited file and index and links/backlinks
-        (publish/publish-all)))
+        (publish/publish-note (:file event))
+        (publish/publish-indexes)))
     1000))
 
 ;; TODO debounce this system

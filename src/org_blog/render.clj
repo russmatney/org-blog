@@ -116,9 +116,9 @@ ws.onopen = () => ws.send('{:path \"' + document.location.pathname + '\"}'); ")]
   (doc->static-html (eval-notebook 'org-blog.daily))
   (path+ns-sym->spit-static-html "test.html" 'org-blog.daily))
 
-(defn ->hiccup-page [title hic]
+(defn ->html-page [title hic]
   (hiccup/html5
-    {:class "overflow-hidden min-h-screen"}
+    {:class "overflow-hidden min-h-screen dark"}
     [:head
      [:title title]
      [:meta {:charset "UTF-8"}]
@@ -126,11 +126,12 @@ ws.onopen = () => ws.send('{:path \"' + document.location.pathname + '\"}'); ")]
      (clerk-view/include-css+js)]
     [:body.dark:bg-gray-900
      (header)
-     hic]))
+     [:div.flex
+      hic]]))
 
 (defn write-page [{:keys [path title content]}]
   (ensure-path path)
-  (spit path (->hiccup-page (if title (str main-title " - " title) main-title) content))
+  (spit path (->html-page (if title (str main-title " - " title) main-title) content))
   (format-html-file path))
 
 (comment

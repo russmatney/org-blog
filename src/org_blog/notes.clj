@@ -1,11 +1,7 @@
 (ns org-blog.notes
   (:require
-   [babashka.fs :as fs]
-   [clojure.string :as string]
-
    [org-blog.db :as db]
-   [org-blog.config :as config]
-   [org-blog.render :as render]))
+   [org-blog.config :as config]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ "published notes"

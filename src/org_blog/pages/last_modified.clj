@@ -6,6 +6,7 @@
    [dates.tick :as dates]
 
    [org-blog.item :as item]
+   [org-blog.render :as render]
    [org-blog.notes :as notes]))
 
 (def ^:dynamic *notes* (notes/published-notes))
@@ -33,19 +34,31 @@
    [:hr]])
 
 (defn page []
-  [:div
-   [:div
-    {:class ["flex" "flex-row" "justify-center"]}
-    [:h2 {:class ["font-mono"]} "Notes By Date Modified"]]
-   [:div
+  [:div.flex-auto.h-screen.overflow-y-auto
+   [:div.flex.flex-col.items-center.flex-auto
     [:div
-     (->>
-       (notes-by-day *notes*)
-       (map (fn [[day notes]] (day-block {:day day :notes notes})))
-       (into [:div]))]]])
+     {:class ["w-full" "max-w-prose" "px-8"
+              "viewer-notebook"]}
+     [:div
+      {:class ["flex" "flex-row" "justify-center"]}
+      [:h2 {:class ["font-mono"]} "Notes By Date Modified"]]
+     [:div
+      [:div
+       (->>
+         (notes-by-day *notes*)
+         (map (fn [[day notes]] (day-block {:day day :notes notes})))
+         (into [:div]))]]]]])
+
+(comment
+  (render/write-page
+    {:path    "public/last-modified.html"
+     :content (page)
+     :title   "By Modified Date"}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
 
 ^{::clerk/no-cache true}
 (clerk/html (page))
+
+nil
