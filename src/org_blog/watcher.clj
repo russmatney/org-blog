@@ -7,7 +7,46 @@
 
    [org-blog.db :as db]
    [org-blog.config :as config]
-   [org-blog.publish :as publish]))
+   [org-blog.publish :as publish]
+   [ralphie.browser :as browser])
+  (:import [java.util Timer TimerTask]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; debounce
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn debounce
+  "https://gist.github.com/oliyh/0c1da9beab43766ae2a6abc9507e732a"
+  ([f] (debounce f 1000))
+  ([f timeout]
+   (let [timer (Timer.)
+         task  (atom nil)]
+     (with-meta
+       (fn [& args]
+         (when-let [t ^TimerTask @task]
+           (.cancel t))
+         (let [new-task (proxy [TimerTask] []
+                          (run []
+                            (apply f args)
+                            (reset! task nil)
+                            (.purge timer)))]
+           (reset! task new-task)
+           (.schedule timer new-task timeout)))
+       {:task-atom task}))))
+
+(comment
+  (def say-hello (debounce #(println "Hello" %1) 2000))
+
+  (def say-hello (debounce #(println "Hello" %1) 2000))
+
+  (say-hello "is it me you're looking for?")
+  (say-hello "Lionel"))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; org watcher
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn org-dir-path []
   (fs/file (str (fs/home) "/todo")))
@@ -27,6 +66,20 @@
                           k)))
               first))))
 
+(def on-org-file-change
+  (debounce
+    (fn [_event]
+      ;; reparse org files
+      (db/refresh-notes)
+
+      ;; re-eval open clerk clients
+      (clerk/recompute!)
+
+      (when (config/export-mode?)
+        ;; TODO only publish the edited file and index and links/backlinks
+        (publish/publish-all)))
+    1000))
+
 ;; TODO debounce this system
 (defsys *org-watcher*
   :start
@@ -37,16 +90,7 @@
       (when (and (not (#{:delete} (:action event)))
                  (should-sync-file? (:file event)))
         (println "[WATCH]: org file changed:" (fs/file-name (:file event)))
-
-        ;; reparse org files
-        (db/refresh-notes)
-
-        ;; re-eval open clerk clients
-        (clerk/recompute!)
-
-        (when (config/export-mode?)
-          ;; TODO only publish the edited file and index and links/backlinks
-          (publish/publish-all))))
+        (on-org-file-change event)))
     (org-dir-path))
 
   :stop
@@ -57,3 +101,38 @@
   (sys/start! `*org-watcher*)
   *org-watcher*
   (config/toggle-export-mode))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; public/ watcher
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn export-dir-path []
+  (fs/file "public"))
+
+(def on-export-file-change
+  (debounce
+    (fn [_event]
+      (println "[WATCH]: reloading export browser tabs")
+      (browser/reload-tabs {:url-match "localhost:9999"}))
+    1000))
+
+(defsys *export-watcher*
+  :start
+  (println "Starting *export-watcher*")
+  (dirwatch/watch-dir
+    (fn [event]
+      (println (:action event) "event" event)
+      (when (not (#{:delete} (:action event)))
+        (println "[WATCH]: export file changed:" (fs/file-name (:file event)))
+        (on-export-file-change event)))
+    (export-dir-path))
+
+  :stop
+  (dirwatch/close-watcher *export-watcher*))
+
+(comment
+  (sys/start! `*export-watcher*)
+  *export-watcher*
+
+  (publish/publish-index-by-last-modified))

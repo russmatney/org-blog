@@ -21,7 +21,8 @@
 (notify/notify "started clerk server on port 8888")
 
 (sys/start! `watcher/*org-watcher*)
-(notify/notify "started clerk org-watcher")
+(sys/start! `watcher/*export-watcher*)
+(notify/notify "started org and export watchers")
 
 ;; maybe this works
 #_(clerk/show!
