@@ -91,8 +91,24 @@
      :h1)
    (:org/name item)])
 
+(defn render-text [text]
+  ;; TODO handle urls and links here
+  text)
+
 (defn item->hiccup-body [item]
-  nil)
+  (def item item)
+  (->> item :org/body
+       (partition-by (comp #{:blank :metadata} :line-type))
+       (map (fn [group]
+              (let [first-elem-type (-> group first :line-type)]
+                (cond
+                  (#{:blank} first-elem-type) [:br]
+                  (#{:table-row} first-elem-type)
+                  [:p
+                   (->> group (map :text)
+                        (map render-text)
+                        (string/join "\n")
+                        #_(into [:p]))]))))))
 
 (defn item->hiccup-content [item]
   (let [children (->> item :org/items (map item->hiccup-content))]

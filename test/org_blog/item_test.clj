@@ -31,11 +31,32 @@
      "i think this is just the title check"
      "*** watch for burying situations"]))
 
+(def body-test-case
+  (parse/parse-lines
+    [":PROPERTIES:"
+     ":ID:       d0417009-ad54-4f22-a577-6cb00df5a50e"
+     ":END:"
+     "#+title: 2022-10-30"
+     ""
+     "* [[id:8d9423ca-73f8-4cc1-8f46-3e19a11d8d22][obs]] see yourself while streaming with a 'windowed projector' :obs:"
+     "Did this a month or two ago, but couldn't at all remember it this morning."
+     "here's the vid:"
+     "https://www.youtube.com/watch?v=Z9S_2FmLCm8"
+     ""
+     "See also: [[id:cffb5f16-8e58-4f82-9667-85b7785a4bfd][getting started with obs studios]]"
+     ""
+     "Keyword is 'windowed projector' - right click the source in obs, then 'windowed"
+     "projector' to get the video to pop out"
+     "*** [X] restore proper tauri clerk notebook toggle"
+     "CLOSED: [2022-10-30 Sun 13:56]"
+     "i think this is just the title check"
+     ]))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; basic
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(deftest item->hiccup-headline-test
+(deftest item->hiccup-content-test
   (testing "displays basic h1s"
     (let [t      "some title"
           node   (parse/parse-lines [(str "#+title: " t)])
@@ -64,26 +85,18 @@
                "watch for burying situations"}
              header-content)))))
 
-(comment
-  (def x
-    [:div
-     [:div
-      [:h1 "2022-10-30"]
-      [:div "body-content"]]
-     [:div
-      [:h1 "maybe goals"]
-      [:div "#goals"]
-      [:div "body-content"]]
-     [:div
-      [:h2 "clawe"]
-      [:div "body-content"]]
-     [:div
-      [:h3 "restore proper tauri clerk notebook toggle" ]
-      [:div "body-content"]]
-     [:div
-      [:h3 "watch for burying situations" ]
-      [:div "body-content"]]])
-
-  (tree-seq vector? seq x)
-
-  )
+(deftest item->hiccup-content-test-body
+  (testing "displays expected daily-test-case bodies"
+    (let [content (item/item->hiccup-content body-test-case)
+          nodes   (tree-seq vector? seq content)
+          p-nodes (->> nodes
+                       (filter (fn [node]
+                                 (and (vector? node)
+                                      (#{:p} (first node)))))
+                       (into #{}))]
+      (is (= 4 (count p-nodes)))
+      (is (= #{[:p "Keyword is 'windowed projector' - right click the source in obs, then 'windowed\nprojector' to get the video to pop out"]
+               [:p "Did this a month or two ago, but couldn't at all remember it this morning.\nhere's the vid:\nhttps://www.youtube.com/watch?v=Z9S_2FmLCm8"]
+               [:p "See also: [[id:cffb5f16-8e58-4f82-9667-85b7785a4bfd][getting started with obs studios]]"]
+               [:p "i think this is just the title check"]}
+             p-nodes)))))
