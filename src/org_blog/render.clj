@@ -116,7 +116,7 @@ ws.onopen = () => ws.send('{:path \"' + document.location.pathname + '\"}'); ")]
   (doc->static-html (eval-notebook 'org-blog.daily))
   (path+ns-sym->spit-static-html "test.html" 'org-blog.daily))
 
-(defn ->html-page [title hic]
+(defn ->html-page [title content]
   (hiccup/html5
     {:class "overflow-hidden min-h-screen dark"}
     [:head
@@ -131,7 +131,7 @@ ws.onopen = () => ws.send('{:path \"' + document.location.pathname + '\"}'); ")]
        [:div.flex.flex-col.items-center.flex-auto
         [:div
          {:class ["w-full" "max-w-prose" "px-8" "viewer-notebook"]}
-         hic]]]]]))
+         content]]]]]))
 
 (defn write-page [{:keys [path title content]}]
   (ensure-path path)
