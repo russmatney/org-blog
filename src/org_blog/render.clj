@@ -127,7 +127,11 @@ ws.onopen = () => ws.send('{:path \"' + document.location.pathname + '\"}'); ")]
     [:body.dark:bg-gray-900
      (header)
      [:div.flex
-      hic]]))
+      [:div.flex-auto.h-screen.overflow-y-auto
+       [:div.flex.flex-col.items-center.flex-auto
+        [:div
+         {:class ["w-full" "max-w-prose" "px-8" "viewer-notebook"]}
+         hic]]]]]))
 
 (defn write-page [{:keys [path title content]}]
   (ensure-path path)

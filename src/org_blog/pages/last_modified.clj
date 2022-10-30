@@ -34,20 +34,15 @@
    [:hr]])
 
 (defn page []
-  [:div.flex-auto.h-screen.overflow-y-auto
-   [:div.flex.flex-col.items-center.flex-auto
-    [:div
-     {:class ["w-full" "max-w-prose" "px-8"
-              "viewer-notebook"]}
-     [:div
-      {:class ["flex" "flex-row" "justify-center"]}
-      [:h2 {:class ["font-mono"]} "Notes By Date Modified"]]
-     [:div
-      [:div
-       (->>
-         (notes-by-day *notes*)
-         (map (fn [[day notes]] (day-block {:day day :notes notes})))
-         (into [:div]))]]]]])
+  [:div
+   [:div
+    {:class ["flex" "flex-row" "justify-center"]}
+    [:h2 {:class ["font-mono"]} "Notes By Date Modified"]]
+
+   (->>
+     (notes-by-day *notes*)
+     (map (fn [[day notes]] (day-block {:day day :notes notes})))
+     (into [:div]))])
 
 (comment
   (render/write-page

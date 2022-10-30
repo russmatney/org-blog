@@ -78,8 +78,3 @@
 
 (comment
   (publish-all))
-
-
-(defn refresh-browser []
-  (browser/tabs)
-  )
