@@ -45,19 +45,19 @@
      (->> notes (map #(item/note-row % {:tags #{tag}})) (into [:div])))
    [:hr]])
 
+(defn page []
+  [:div
+   [:div
+    {:class ["flex" "flex-row" "justify-center"]}
+    [:h2 {:class ["font-mono"]} "Notes By Tag"]]
+   (->>
+     (notes-by-tag *notes*)
+     (map (fn [[tag notes]] (tag-block {:tag tag :notes notes})))
+     (into [:div]))])
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
 
-(clerk/html
-  [:div
-   {:class ["flex" "flex-row" "justify-center"]}
-   [:h2 {:class ["font-mono"]} "Notes By Tag"]])
+(clerk/html (page))
 
-^{::clerk/no-cache true}
-(clerk/html
-  [:div
-   [:div
-    (->>
-      (notes-by-tag *notes*)
-      (map (fn [[tag notes]] (tag-block {:tag tag :notes notes})))
-      (into [:div]))]])
+nil

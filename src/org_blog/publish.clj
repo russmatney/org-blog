@@ -7,8 +7,8 @@
    [org-blog.pages.daily :as pages.daily]
    [org-blog.pages.note :as pages.note]
    [org-blog.pages.last-modified :as pages.last-modified]
-
-   [ralphie.browser :as browser]))
+   [org-blog.pages.index :as pages.index]
+   [org-blog.pages.tags :as pages.tags]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ "publish funcs"
@@ -48,20 +48,24 @@
 
 (defn publish-index-by-tag []
   (println "[EXPORT] exporting index-by-tag.")
-  (render/path+ns-sym->spit-static-html
-    "public/tags.html" 'org-blog.pages.tags))
+  (render/write-page
+    {:path    "public/tags.html"
+     :content (pages.tags/page)
+     :title   "Notes By Tag"}))
 
 (defn publish-index-by-last-modified []
   (println "[EXPORT] exporting index-by-last-modified.")
   (render/write-page
     {:path    "public/last-modified.html"
      :content (pages.last-modified/page)
-     :title   "By Modified Date"}))
+     :title   "Notes By Modified Date"}))
 
 (defn publish-index []
   (println "[EXPORT] exporting index.")
-  (render/path+ns-sym->spit-static-html
-    "public/index.html" 'org-blog.pages.index))
+  (render/write-page
+    {:path    "public/index.html"
+     :content (pages.index/page)
+     :title   "Home"}))
 
 (defn publish-indexes
   ;; TODO delete notes that aren't here?
