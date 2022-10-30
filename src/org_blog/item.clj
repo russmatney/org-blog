@@ -91,9 +91,27 @@
      :h1)
    (:org/name item)])
 
+(defn is-url? [text]
+  (boolean (re-seq #"^https?://" text)))
+
+(comment
+  (is-url? "https://github")
+  (is-url? "hi there")
+
+  (re-seq #"^https?://" "https://"))
+
 (defn render-text [text]
-  ;; TODO handle urls and links here
-  text)
+  ;; TODO handle links here
+
+  ;; TODO split on spaces and convert floating urls
+  ;; (->> text
+  ;;      (string/split " "))
+  (cond
+    (is-url? text)
+    [:a {:href text}
+     [:span text]]
+
+    :else [:span text]))
 
 (defn item->hiccup-body [item]
   (def item item)
@@ -104,11 +122,9 @@
                 (cond
                   (#{:blank} first-elem-type) [:br]
                   (#{:table-row} first-elem-type)
-                  [:p
-                   (->> group (map :text)
-                        (map render-text)
-                        (string/join "\n")
-                        #_(into [:p]))]))))))
+                  (->> group (map :text)
+                       (map render-text)
+                       (into [:p]))))))))
 
 (defn item->hiccup-content [item]
   (let [children (->> item :org/items (map item->hiccup-content))]

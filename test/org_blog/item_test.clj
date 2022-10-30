@@ -50,10 +50,12 @@
      "*** [X] restore proper tauri clerk notebook toggle"
      "CLOSED: [2022-10-30 Sun 13:56]"
      "i think this is just the title check"
+     "* coleslaw - a common lisp static blog tool"
+     "https://github.com/coleslaw-org/coleslaw looks pretty cool!"
      ]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; basic
+;; headers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest item->hiccup-content-test
@@ -85,6 +87,10 @@
                "watch for burying situations"}
              header-content)))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; body
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (deftest item->hiccup-content-test-body
   (testing "displays expected daily-test-case bodies"
     (let [content (item/item->hiccup-content body-test-case)
@@ -100,3 +106,51 @@
                [:p "See also: [[id:cffb5f16-8e58-4f82-9667-85b7785a4bfd][getting started with obs studios]]"]
                [:p "i think this is just the title check"]}
              p-nodes)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; links
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest item->hiccup-content-render-hrefs-test
+  #_(testing "displays header urls as hrefs"
+      (let [content (item/item->hiccup-content daily-test-case)
+            nodes   (tree-seq vector? seq content)
+            a-nodes (->> nodes
+                         (filter (fn [node]
+                                   (and (vector? node)
+                                        (#{:a} (first node)))))
+                         (into #{}))]
+        (is (= 2 (count a-nodes)))))
+
+  (testing "displays body urls as hrefs"
+    (let [content (item/item->hiccup-content body-test-case)
+          nodes   (tree-seq vector? seq content)
+          a-nodes (->> nodes
+                       (filter (fn [node]
+                                 (and (vector? node)
+                                      (#{:a} (first node)))))
+                       (into #{}))]
+      a-nodes
+      (is (= 2 (count a-nodes))))))
+
+
+#_(deftest item->hiccup-content-render-roam-links-test
+    (testing "displays header links as hrefs"
+      (let [content (item/item->hiccup-content daily-test-case)
+            nodes   (tree-seq vector? seq content)
+            a-nodes (->> nodes
+                         (filter (fn [node]
+                                   (and (vector? node)
+                                        (#{:a} (first node)))))
+                         (into #{}))]
+        (is (= 2 (count a-nodes)))))
+
+    (testing "displays body links as hrefs"
+      (let [content (item/item->hiccup-content body-test-case)
+            nodes   (tree-seq vector? seq content)
+            a-nodes (->> nodes
+                         (filter (fn [node]
+                                   (and (vector? node)
+                                        (#{:a} (first node)))))
+                         (into #{}))]
+        (is (= 2 (count a-nodes))))))
