@@ -38,6 +38,7 @@
   "garden/towerfall.org" {:org/short-path "garden/towerfall.org"},
   "garden/procedural_level_generation.org"
   {:org/short-path "garden/procedural_level_generation.org"},
+  "daily/2022-10-29.org" {:org/short-path "daily/2022-10-29.org"},
   "garden/too_much_fun_with_naming.org"
   {:org/short-path "garden/too_much_fun_with_naming.org"},
   "daily/2022-10-08.org" {:org/short-path "daily/2022-10-08.org"},
@@ -101,6 +102,8 @@
   "garden/blog_about.org" {:org/short-path "garden/blog_about.org"},
   "garden/animal_crossing.org"
   {:org/short-path "garden/animal_crossing.org"},
+  "garden/published_spotify_playlists.org"
+  {:org/short-path "garden/published_spotify_playlists.org"},
   "garden/org_mode.org" {:org/short-path "garden/org_mode.org"},
   "garden/things_i_like_in_games.org"
   {:org/short-path "garden/things_i_like_in_games.org"},
@@ -141,6 +144,7 @@
   {:org/short-path "garden/interactive_repl_driven_development.org"},
   "garden/game_making_process.org"
   {:org/short-path "garden/game_making_process.org"},
+  "daily/2022-10-30.org" {:org/short-path "daily/2022-10-30.org"},
   "garden/health_report.org"
   {:org/short-path "garden/health_report.org"},
   "garden/pixels.org" {:org/short-path "garden/pixels.org"}}}
