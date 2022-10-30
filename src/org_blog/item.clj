@@ -60,6 +60,10 @@
       (org-crud.markdown/org-line->md-line
         {:id->link-uri (fn [_] nil)})))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; markdown helpers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn item->md-content
   "Returns a seq of strings"
   ([item] (item->md-content item nil))
@@ -73,6 +77,31 @@
           (str "### " tag-line))
         ""]
        body))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; hiccup helpers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn item->hiccup-headline [item]
+  [(case (:org/level item)
+     :level/root :h1
+     1           :h1
+     2           :h2
+     3           :h3
+     :h1)
+   (:org/name item)])
+
+(defn item->hiccup-body [item]
+  nil)
+
+(defn item->hiccup-content [item]
+  (let [children (->> item :org/items (map item->hiccup-content))]
+    (->>
+      (concat
+        [(item->hiccup-headline item)]
+        (item->hiccup-body item)
+        children)
+      (into [:div]))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; links and backlinks

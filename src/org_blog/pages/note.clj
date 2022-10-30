@@ -5,7 +5,9 @@
    [nextjournal.clerk :as clerk]
 
    [org-blog.item :as item]
-   [org-blog.db :as db]))
+   [org-blog.db :as db]
+   [org-blog.uri :as uri]
+   [org-blog.render :as render]))
 
 ^{::clerk/no-cache true}
 (def ^:dynamic *note*
@@ -23,11 +25,22 @@
   (item/item->md-content *note*)
   (note->content *note*))
 
+(defn page [note]
+  [:div
+   (item/item->hiccup-content note)
+   ])
+
+(comment
+  (render/write-page
+    {:path    (str "public" (uri/note->uri *note*))
+     :content (page *note*)
+     :title   (:org/name *note*)}))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
 
 ^{::clerk/no-cache true}
-(clerk/md (str "# " (:org/name *note*)))
+(clerk/html (page *note*))
 
 ^{::clerk/no-cache true}
 (clerk/md (note->content *note*))
