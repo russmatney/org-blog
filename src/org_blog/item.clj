@@ -82,61 +82,95 @@
 ;; hiccup helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn item->hiccup-headline [item]
-  [(case (:org/level item)
-     :level/root :h1
-     1           :h1
-     2           :h2
-     3           :h3
-     :h1)
-   (:org/name item)])
-
 (defn is-url? [text]
   (boolean (re-seq #"^https?://" text)))
 
-(defn is-link? [text]
-  (boolean (re-seq #"^\[\[" text)))
+(def org-link-re #"\[\[([^\]]*)\]\[([^\]]*)\]\]")
 
-(defn link-or-url? [text]
-  (or (is-url? text) (is-link? text)))
+(defn ->hiccup-link [{:keys [text link]}]
+  (when link
+    [:a {:href link}
+     [:span text]]))
 
-(comment
-  (is-url? "https://github")
-  (is-url? "hi there")
+(defn parse-hiccup-link
+  "Returns hiccup representing the next link in the passed string"
+  [s]
+  (when s
+    (let [res  (re-seq org-link-re s)
+          link (some-> res first second)
+          text (some-> res first last)]
+      (->hiccup-link {:text text :link link}))))
 
-  (re-seq #"^https?://" "https://"))
+(defn interpose-links [s]
+  (->> (loop [s s out []]
+         (let [next-link (parse-hiccup-link s)
+               parts     (string/split s org-link-re 2)]
+           (if (< (count parts) 2)
+             (concat out (if next-link (conj parts next-link) parts))
+             (let [[new-s rest] parts
+                   out          (concat out [new-s next-link])]
+               (recur rest out)))))
+       (remove #{""})))
 
-(defn render-text [text]
-  (->>
-    ;; TODO don't split in link text
-    (string/split text #" ")
-    (partition-by link-or-url?)
-    (map (fn [strs]
-           (cond
-             (and
-               (= 1 (count strs))
-               (is-url? (first strs)))
+(defn render-text
+  "Converts a passed string into spans.
 
-             [:a {:href (first strs)}
-              [:span (first strs)]]
+  Wraps naked urls in [:a {:href url} [:span url]]"
+  [text]
+  (->
+    text
+    (string/trim)
+    (string/split #" ")
+    (->>
+      (partition-by is-url?)
+      (map (fn [strs]
+             (let [f-str (-> strs first string/trim)]
+               (cond
+                 (and (= 1 (count strs)) (is-url? f-str))
+                 (->hiccup-link {:text f-str :link f-str})
 
-             (and
-               (= 1 (count strs))
-               (is-link? (first strs)))
-             #_ (render-link (first strs))
-             [:span (first strs)]
-
-             :else
-             [:span (string/join " " strs)])))
-    (interpose [:span " "])))
+                 :else
+                 [:span (string/join " " strs)])))))))
 
 (comment
   (render-text "https://github.com/coleslaw-org/coleslaw looks pretty cool!")
-  (render-text "[[https://www.patreon.com/russmatney][on patreon]]")
-  )
+  ;; NOTE not handled here - see interpose-links
+  (render-text "[[https://www.patreon.com/russmatney][on patreon]]"))
+
+(defn render-text-and-links [s]
+  (when s
+    (->> s interpose-links
+         (mapcat (fn [chunk]
+                   (if (string? chunk)
+                     (render-text chunk)
+                     [chunk])))
+         (interpose [:span " "]))))
+
+(comment
+
+  (render-text-and-links
+    "check out [[https://www.youtube.com/watch?v=Z9S_2FmLCm8][this video]] on youtube!")
+
+  (render-text-and-links
+    "[[https://github.com/russmatney/some-repo][leading link]]
+check out [[https://www.youtube.com/watch?v=Z9S_2FmLCm8][this video]] on youtube
+and [[https://github.com/russmatney/org-blog][this repo]]
+and [[https://github.com/russmatney/org-crud][this other repo]]"))
+
+(defn item->hiccup-headline [item]
+  (when (:org/name item)
+    (->> item :org/name render-text-and-links
+         (into [(case (:org/level item)
+                  :level/root :h1
+                  1           :h1
+                  2           :h2
+                  3           :h3
+                  4           :h4
+                  5           :h5
+                  6           :h6
+                  :span)]))))
 
 (defn item->hiccup-body [item]
-  (def item item)
   (->> item :org/body
        (partition-by (comp #{:blank :metadata} :line-type))
        (map (fn [group]
@@ -148,7 +182,7 @@
                        ;; join the lines so we can handle multi-line links
                        ;; NOTE here we forego the original line breaks :/
                        (string/join " ")
-                       (render-text)
+                       (render-text-and-links)
                        (into [:p]))))))))
 
 (defn item->hiccup-content [item]
