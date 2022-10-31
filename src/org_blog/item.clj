@@ -51,7 +51,7 @@
 (defn item->name-str
   ([item] (item->name-str item nil))
   ([item opts]
-   (let [opts    (merge {:id->link-uri uri/id->link-uri} opts)
+   (let [opts    (merge {:id->link-uri uri/*id->link-uri*} opts)
          [title] (org-crud.markdown/item->md-body item opts)]
      title)))
 
@@ -68,7 +68,7 @@
   "Returns a seq of strings"
   ([item] (item->md-content item nil))
   ([item opts]
-   (let [opts (merge {:id->link-uri uri/id->link-uri} opts)
+   (let [opts (merge {:id->link-uri uri/*id->link-uri*} opts)
          [title & body]
          (org-crud.markdown/item->md-body item opts)]
      (concat
@@ -89,8 +89,21 @@
 
 (defn ->hiccup-link [{:keys [text link]}]
   (when link
-    [:a {:href link}
-     [:span text]]))
+    (let [id       (some->> (re-seq #"^id:([A-Za-z0-9-]*)" link) first second)
+          link-uri (when id (uri/*id->link-uri* id))]
+      (cond
+        (and id link-uri)
+        ;; TODO maybe flag these as a different color
+        [:a {:href link-uri}
+         [:span text]]
+
+        (and id (not link-uri))
+        ;; TODO tooltip for 'future-link'
+        [:span text]
+
+        :else
+        [:a {:href link}
+         [:span text]]))))
 
 (defn parse-hiccup-link
   "Returns hiccup representing the next link in the passed string"
@@ -202,16 +215,16 @@ and [[https://github.com/russmatney/org-crud][this other repo]]"))
   [id]
   (->> id
        db/notes-linked-from
-       (filter (comp uri/id->link-uri :org/id)) ;; filter if not 'published'
+       (filter (comp uri/*id->link-uri* :org/id)) ;; filter if not 'published'
        (mapcat (fn [item]
                  (let [link-name (:org/parent-name item (:org/name item))]
                    (concat
-                     [(str "### [" link-name "](" (-> item :org/id uri/id->link-uri) ")")]
+                     [(str "### [" link-name "](" (-> item :org/id uri/*id->link-uri*) ")")]
                      ;; disabled backlink content for now b/c for links from dailies
                      ;; that don't have parents, too much is pulled and unraveled
                      (org-crud.markdown/item->md-body
                        item
-                       {:id->link-uri uri/id->link-uri}
+                       {:id->link-uri uri/*id->link-uri*}
                        )))))))
 
 (defn backlinks
@@ -262,7 +275,7 @@ and [[https://github.com/russmatney/org-crud][this other repo]]"))
                  "pr-2"]}
         [:a
          {:class ["cursor-pointer"]
-          :href  (uri/id->link-uri (:org/id note))}
+          :href  (uri/*id->link-uri* (:org/id note))}
          (:org/name note)]]
 
        ;; [:div

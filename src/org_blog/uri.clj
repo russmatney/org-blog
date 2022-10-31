@@ -21,7 +21,7 @@
 (defn note->uri [note]
   (-> note :org/source-file path->uri))
 
-(defn id->link-uri
+(defn ^:dynamic *id->link-uri*
   "Passed into org-crud to determine if a text link should be included or ignored."
   [id]
   (let [note (db/fetch-with-id id)]

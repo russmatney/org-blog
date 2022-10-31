@@ -3,7 +3,8 @@
    [clojure.test :refer [deftest is testing]]
    [org-crud.parse :as parse]
    [org-blog.item :as item]
-   [clojure.string :as string]))
+   [clojure.string :as string]
+   [org-blog.uri :as uri]))
 
 (defn hiccup->elements
   "Given some hiccup, returns all the elements matching the passed set of elem types.
@@ -198,7 +199,50 @@
       (is (= "https://www.youtube.com/watch?v=Z9S_2FmLCm8" (-> a-elem second :href)))
       (is (= expected-strings strings)))))
 
-;; TODO tests for id:UUID links
+(deftest item->hiccup-links-support-id-links
+  (testing "supports published links"
+    (let [some-id      (str (random-uuid))
+          some-uri     "/notes/some-note.html"
+          id->link-uri (fn [_] some-uri)
+
+          input-lines [(str "[[id:" some-id "][this note]]")]
+
+          content
+          (with-bindings
+            {#'uri/*id->link-uri* id->link-uri}
+            (->> input-lines
+                 parse/parse-lines
+                 item/item->hiccup-content))
+
+          a-elems          (hiccup->elements content #{:a})
+          a-elem           (some->> a-elems first)
+          strings          (-> content (hiccup->elements #{:span}) elems->strings)
+          expected-strings #{"this note"}]
+      (is (= 1 (count a-elems)))
+      (is (= some-uri (-> a-elem second :href)))
+      (is (= expected-strings strings))))
+
+  (testing "unpublished links show as plain text"
+    (let [some-id      (str (random-uuid))
+          id->link-uri (fn [_] nil)
+          input-lines  [(str "[[id:" some-id "][this note]]")]
+
+          content
+          (with-bindings
+            {#'uri/*id->link-uri* id->link-uri}
+            (->> input-lines
+                 parse/parse-lines
+                 item/item->hiccup-content))
+
+          a-elems          (hiccup->elements content #{:a})
+          strings          (-> content (hiccup->elements #{:span}) elems->strings)
+          expected-strings #{"this note"}]
+      (is (= 0 (count a-elems)))
+      (is (= expected-strings strings)))) )
+
+
+
+
 
 (deftest item->hiccup-src-block-test
   (let [input-lines
