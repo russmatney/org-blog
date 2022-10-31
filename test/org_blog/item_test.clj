@@ -84,11 +84,15 @@
      ""
      "Keyword is 'windowed projector' - right click the source in obs, then 'windowed"
      "projector' to get the video to pop out"
-     "*** [X] restore proper tauri clerk notebook toggle"
+     "** [X] restore proper tauri clerk notebook toggle"
      "CLOSED: [2022-10-30 Sun 13:56]"
      "i think this is just the title check"
      "* coleslaw - a common lisp static blog tool"
-     "https://github.com/coleslaw-org/coleslaw looks pretty cool!"]))
+     "https://github.com/coleslaw-org/coleslaw looks pretty cool!"
+     ""
+     "* some vid i found"
+     "check out [[https://www.youtube.com/watch?v=Z9S_2FmLCm8][this"
+     "video]] on youtube!"]))
 
 (deftest item->hiccup-content-test-body
   (testing "displays expected bodies"
@@ -98,19 +102,22 @@
 
           ;; TODO support link with line-breaks
           expected-strings
-          #{"Keyword is 'windowed projector' - right click the source in obs, then 'windowed"
+          #{"Keyword is 'windowed projector' - right click the source in obs, then 'windowed projector' to get the video to pop out"
             "getting started with obs studios"
             "https://www.youtube.com/watch?v=Z9S_2FmLCm8"
-            "projector' to get the video to pop out"
-            "here's the vid:"
             "See also:"
             "i think this is just the title check"
-            "Did this a month or two ago, but couldn't at all remember it this morning."}]
+            "Did this a month or two ago, but couldn't at all remember it this morning. here's the vid:"
+            "https://github.com/coleslaw-org/coleslaw"
+            "looks pretty cool!"
+            "check out"
+            "this video"
+            "on youtube!"}]
       ;; all these strings should be in there
-      (is (= strings expected-strings))
+      (is (= expected-strings strings))
 
       ;; should be split into paragraphs
-      (is (= 4 (count p-nodes))))))
+      (is (= 6 (count p-nodes))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; links
@@ -129,7 +136,7 @@
                              "https://www.youtube.com/watch?v=Z9S_2FmLCm8"
                              "on youtube!"}]
       (is (= 1 (count a-elems)))
-      (is (= (-> a-elem second :href) "https://www.youtube.com/watch?v=Z9S_2FmLCm8"))
+      (is (= "https://www.youtube.com/watch?v=Z9S_2FmLCm8" (-> a-elem second :href)))
       (is (= strings expected-strings))))
 
   (testing "displays body urls as hrefs"
@@ -144,7 +151,7 @@
                              "https://www.youtube.com/watch?v=Z9S_2FmLCm8"
                              "on youtube!"}]
       (is (= 1 (count a-elems)))
-      (is (= (-> a-elem second :href) "https://www.youtube.com/watch?v=Z9S_2FmLCm8"))
+      (is (= "https://www.youtube.com/watch?v=Z9S_2FmLCm8" (-> a-elem second :href)))
       (is (= strings expected-strings)))))
 
 (deftest item->hiccup-content-render-org-links-test
@@ -156,12 +163,10 @@
           a-elem  (some->> a-elems first)
 
           strings          (-> content (hiccup->elements #{:span}) elems->strings)
-          expected-strings #{"check out this video:"
-                             "https://www.youtube.com/watch?v=Z9S_2FmLCm8"
-                             "on youtube!"}]
+          expected-strings #{"check out" "this video" "on youtube!"}]
       (is (= 1 (count a-elems)))
-      (is (= (-> a-elem second :href) "https://www.youtube.com/watch?v=Z9S_2FmLCm8"))
-      (is (= strings expected-strings))))
+      (is (= "https://www.youtube.com/watch?v=Z9S_2FmLCm8" (-> a-elem second :href)))
+      (is (= expected-strings strings))))
 
   (testing "displays body org-links as hrefs"
     (let [input-lines
@@ -171,12 +176,25 @@
           a-elem  (some->> a-elems first)
 
           strings          (-> content (hiccup->elements #{:span}) elems->strings)
-          expected-strings #{"check out this video:"
-                             "https://www.youtube.com/watch?v=Z9S_2FmLCm8"
-                             "on youtube!"}]
+          expected-strings #{"check out" "this video" "on youtube!"}]
       (is (= 1 (count a-elems)))
-      (is (= (-> a-elem second :href) "https://www.youtube.com/watch?v=Z9S_2FmLCm8"))
-      (is (= strings expected-strings)))))
+      (is (= "https://www.youtube.com/watch?v=Z9S_2FmLCm8" (-> a-elem second :href)))
+      (is (= expected-strings strings))))
 
-;; TODO tests for link on a line-break
+  (testing "handles body org-links with line breaks"
+    (let [input-lines
+          [
+           "check out [[https://www.youtube.com/watch?v=Z9S_2FmLCm8][this"
+           "video]] on youtube!"
+           ]
+          content (->> input-lines parse/parse-lines item/item->hiccup-content)
+          a-elems (hiccup->elements content #{:a})
+          a-elem  (some->> a-elems first)
+
+          strings          (-> content (hiccup->elements #{:span}) elems->strings)
+          expected-strings #{"check out" "this video" "on youtube!"}]
+      (is (= 1 (count a-elems)))
+      (is (= "https://www.youtube.com/watch?v=Z9S_2FmLCm8" (-> a-elem second :href)))
+      (is (= expected-strings strings)))))
+
 ;; TODO tests for id:UUID links

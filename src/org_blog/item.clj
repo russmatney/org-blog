@@ -145,8 +145,10 @@
                   (#{:blank} first-elem-type) [:br]
                   (#{:table-row} first-elem-type)
                   (->> group (map :text)
-                       (mapcat render-text)
-                       (interpose [:span " "])
+                       ;; join the lines so we can handle multi-line links
+                       ;; NOTE here we forego the original line breaks :/
+                       (string/join " ")
+                       (render-text)
                        (into [:p]))))))))
 
 (defn item->hiccup-content [item]
