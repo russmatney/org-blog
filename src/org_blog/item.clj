@@ -94,6 +94,12 @@
 (defn is-url? [text]
   (boolean (re-seq #"^https?://" text)))
 
+(defn is-link? [text]
+  (boolean (re-seq #"^\[\[" text)))
+
+(defn link-or-url? [text]
+  (or (is-url? text) (is-link? text)))
+
 (comment
   (is-url? "https://github")
   (is-url? "hi there")
@@ -101,17 +107,33 @@
   (re-seq #"^https?://" "https://"))
 
 (defn render-text [text]
-  ;; TODO handle links here
+  (->>
+    ;; TODO don't split in link text
+    (string/split text #" ")
+    (partition-by link-or-url?)
+    (map (fn [strs]
+           (cond
+             (and
+               (= 1 (count strs))
+               (is-url? (first strs)))
 
-  ;; TODO split on spaces and convert floating urls
-  ;; (->> text
-  ;;      (string/split " "))
-  (cond
-    (is-url? text)
-    [:a {:href text}
-     [:span text]]
+             [:a {:href (first strs)}
+              [:span (first strs)]]
 
-    :else [:span text]))
+             (and
+               (= 1 (count strs))
+               (is-link? (first strs)))
+             #_ (render-link (first strs))
+             [:span (first strs)]
+
+             :else
+             [:span (string/join " " strs)])))
+    (interpose [:span " "])))
+
+(comment
+  (render-text "https://github.com/coleslaw-org/coleslaw looks pretty cool!")
+  (render-text "[[https://www.patreon.com/russmatney][on patreon]]")
+  )
 
 (defn item->hiccup-body [item]
   (def item item)
@@ -123,7 +145,8 @@
                   (#{:blank} first-elem-type) [:br]
                   (#{:table-row} first-elem-type)
                   (->> group (map :text)
-                       (map render-text)
+                       (mapcat render-text)
+                       (interpose [:span " "])
                        (into [:p]))))))))
 
 (defn item->hiccup-content [item]
