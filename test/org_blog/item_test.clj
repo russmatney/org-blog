@@ -2,7 +2,8 @@
   (:require
    [clojure.test :refer [deftest is testing]]
    [org-crud.parse :as parse]
-   [org-blog.item :as item]))
+   [org-blog.item :as item]
+   [clojure.string :as string]))
 
 (defn hiccup->elements
   "Given some hiccup, returns all the elements matching the passed set of elem types.
@@ -198,3 +199,19 @@
       (is (= expected-strings strings)))))
 
 ;; TODO tests for id:UUID links
+
+(deftest item->hiccup-src-block-test
+  (let [input-lines
+        (string/split-lines "
+* some loop/recur :code:
+
+#+BEGIN_SRC clojure
+(defn some-func [s]
+  (println s))
+#+END_SRC")
+        content (->> input-lines parse/parse-lines item/item->hiccup-content)]
+    content
+
+    ;; TODO consider helpers for colorizing code block
+    ;; TODO consider org -> markdown -> html
+    ))
