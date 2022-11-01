@@ -181,6 +181,28 @@
           expected-strings #{"check out" "this video" "on youtube!"}]
       (is (= 1 (count a-elems)))
       (is (= "https://www.youtube.com/watch?v=Z9S_2FmLCm8" (-> a-elem second :href)))
+      (is (= expected-strings strings))))
+
+  (testing "handles multiple links in one paragraph"
+    (let [input-lines (string/split-lines "[[https://github.com/russmatney/some-repo][leading link]]
+check out [[https://www.youtube.com/watch?v=Z9S_2FmLCm8][this video]] on youtube
+and [[https://github.com/russmatney/org-blog][this repo]]
+and [[https://github.com/russmatney/org-crud][this other repo]]")
+          content     (->> input-lines parse/parse-lines item/item->hiccup-content)
+          a-elems     (hiccup->elements content #{:a})
+
+          strings          (-> content (hiccup->elements #{:span}) elems->strings)
+          expected-strings #{"check out" "this video" "on youtube and"
+                             "and"
+                             "this repo"
+                             "this other repo"
+                             "leading link"}
+          expected-urls    #{"https://www.youtube.com/watch?v=Z9S_2FmLCm8"
+                             "https://github.com/russmatney/org-crud"
+                             "https://github.com/russmatney/org-blog"
+                             "https://github.com/russmatney/some-repo"}
+          urls             (->> a-elems (map (comp :href second)) (into #{}))]
+      (is (= expected-urls urls))
       (is (= expected-strings strings)))))
 
 (deftest item->hiccup-links-multi-line
