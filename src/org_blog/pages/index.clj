@@ -43,7 +43,7 @@
     [:h2 {:class ["font-mono"]} "Home"]]
 
    [:div
-    [:h3 [:a {:href "/notes/blog_about.html"} "About"]]]
+    [:h3 [:a {:href "/note/blog_about.html"} "About"]]]
 
    [:div
     [:h3 "Notes"]
@@ -95,7 +95,7 @@
 
 (comment
   (render/write-page
-    {:path    (str (config/blog-content-root) "/index.html")
+    {:path    (str (config/blog-content-public) "/index.html")
      :content (page)
      :title   "Home"}))
 

@@ -59,7 +59,7 @@
 
 (comment
   (render/write-page
-    {:path    (str (config/blog-content-root) "/tags.html")
+    {:path    (str (config/blog-content-public) "/tags.html")
      :content (page)
      :title   "Home"}))
 

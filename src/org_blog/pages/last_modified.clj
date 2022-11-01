@@ -47,7 +47,7 @@
 
 (comment
   (render/write-page
-    {:path    (str (config/blog-content-root) "/last-modified.html")
+    {:path    (str (config/blog-content-public) "/last-modified.html")
      :content (page)
      :title   "By Modified Date"}))
 

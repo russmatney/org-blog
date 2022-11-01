@@ -6,8 +6,22 @@
    [systemic.core :as sys :refer [defsys]]
    [babashka.fs :as fs]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; blog content root
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def res (io/resource "config.edn"))
+(defn blog-content-root []
+  ;; TODO rework to read/write from config
+  (str (fs/home) "/russmatney/org-blog-content"))
+
+(defn blog-content-public []
+  (str (blog-content-root) "/public"))
+
+(defn blog-content-config []
+  (str (blog-content-root) "/blog.edn"))
+
+
+(def res (blog-content-config))
 
 (defn ->config [] (aero/read-config res))
 
@@ -25,14 +39,6 @@
         ;; note this is not a deep merge
         (merge @*config* updated-config)]
     (pprint/pprint updated-config (io/writer res))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; blog content root
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn blog-content-root []
-  ;; TODO rework to read/write from config
-  (str (fs/home) "/russmatney/org-blog-content/public"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

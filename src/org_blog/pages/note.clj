@@ -24,7 +24,7 @@
 
 (comment
   (render/write-page
-    {:path    (str (config/blog-content-root) (uri/note->uri *note*))
+    {:path    (str (config/blog-content-public) (uri/note->uri *note*))
      :content (page *note*)
      :title   (:org/name *note*)}))
 

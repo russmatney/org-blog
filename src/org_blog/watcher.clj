@@ -108,7 +108,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn export-dir-path []
-  (fs/file (config/blog-content-root)))
+  (fs/file (config/blog-content-public)))
 
 (def on-export-file-change
   (debounce

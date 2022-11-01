@@ -31,12 +31,12 @@
         (println "[PUBLISH] exporting note: " (:org/short-path note))
         (if (-> note :org/source-file (string/includes? "/daily/"))
           (render/write-page
-            {:path    (str (config/blog-content-root) (uri/note->uri note))
+            {:path    (str (config/blog-content-public) (uri/note->uri note))
              :content (pages.daily/page note)
              :title   (:org/name note)})
 
           (render/write-page
-            {:path    (str (config/blog-content-root) (uri/note->uri note))
+            {:path    (str (config/blog-content-public) (uri/note->uri note))
              :content (pages.note/page note)
              :title   (:org/name note)}))))))
 
@@ -48,21 +48,21 @@
 (defn publish-index-by-tag []
   (println "[PUBLISH] exporting index-by-tag.")
   (render/write-page
-    {:path    (str (config/blog-content-root) "/tags.html")
+    {:path    (str (config/blog-content-public) "/tags.html")
      :content (pages.tags/page)
      :title   "Notes By Tag"}))
 
 (defn publish-index-by-last-modified []
   (println "[PUBLISH] exporting index-by-last-modified.")
   (render/write-page
-    {:path    (str (config/blog-content-root) "/last-modified.html")
+    {:path    (str (config/blog-content-public) "/last-modified.html")
      :content (pages.last-modified/page)
      :title   "Notes By Modified Date"}))
 
 (defn publish-index []
   (println "[PUBLISH] exporting index.")
   (render/write-page
-    {:path    (str (config/blog-content-root) "/index.html")
+    {:path    (str (config/blog-content-public) "/index.html")
      :content (pages.index/page)
      :title   "Home"}))
 

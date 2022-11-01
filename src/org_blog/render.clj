@@ -24,8 +24,7 @@
 ;; --new-inline-tags fn
 (comment
   (format-html-file "public/test.html")
-  (format-html-file "public/last-modified.html")
-  )
+  (format-html-file "public/last-modified.html"))
 
 (defn eval-notebook
   "Evaluates the notebook identified by its `ns-sym`"
@@ -164,27 +163,4 @@ ws.onopen = () => ws.send('{:path \"' + document.location.pathname + '\"}'); ")]
     {:path    "public/test.html"
      :content [:div
                [:h1 "test page"]
-               [:h2 "full of content"]]})
-
-  (hiccup2.core/html
-    [:div
-     "some crazy string with <weird tagging> and such"])
-
-  (hiccup2.core/html
-    {:mode :html}
-    (hiccup.page/doctype :html5)
-    [:html
-     {:class "overflow-hidden min-h-screen dark"}
-     [:head]
-     [:body
-      [:div
-       "some crazy string with <weird tagging> and such"]]])
-
-  (hiccup.page/html5
-    {:class "overflow-hidden min-h-screen dark"}
-    [:head]
-    [:body
-     [:div
-      "some crazy string with <weird tagging> and such"]])
-
-  )
+               [:h2 "full of content"]]}))
