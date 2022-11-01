@@ -156,6 +156,21 @@
       (is (= "https://www.youtube.com/watch?v=Z9S_2FmLCm8" (-> a-elem second :href)))
       (is (= strings expected-strings)))))
 
+(deftest item->hiccup-hrefs-multiline
+  (let [input         (string/split-lines "
+https://reddit.com/r/gameassets/comments/ydwe3e/retro_game_weapons_sound_effects_sound_effects/
+https://happysoulmusic.com/retro-game-weapons-sound-effects/
+")
+        content       (->> input parse/parse-lines item/item->hiccup-content)
+        a-elems       (hiccup->elements content #{:a})
+        expected-urls #{"https://reddit.com/r/gameassets/comments/ydwe3e/retro_game_weapons_sound_effects_sound_effects/"
+                        "https://happysoulmusic.com/retro-game-weapons-sound-effects/"}
+        strings       (-> content (hiccup->elements #{:span}) elems->strings)
+        urls          (->> a-elems (map (comp :href second)) (into #{}))]
+    content
+    (is (= expected-urls urls))
+    (is (= expected-urls strings))))
+
 (deftest item->hiccup-content-render-org-links-test
   (testing "displays header org-links as hrefs"
     (let [input-lines

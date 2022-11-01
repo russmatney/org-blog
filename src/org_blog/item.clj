@@ -195,20 +195,23 @@ some ~famous blob~ with a list
               (string? chunk)
               (-> chunk
                   string/trim
-                  (string/split #" ")
+                  (string/split-lines)
                   (->>
+                    (mapcat #(string/split % #" "))
                     (partition-by is-url?)
-                    (map (fn [strs]
-                           (let [f-str (-> strs first string/trim)]
-                             (cond
-                               (and (= 1 (count strs)) (is-url? f-str))
-                               (->hiccup-link {:text f-str :link f-str})
-
-                               :else
-                               [:span (string/join " " strs)]))))))))))))
+                    (mapcat (fn [strs]
+                              (let [f-str (-> strs first string/trim)]
+                                (cond
+                                  (is-url? f-str)
+                                  (->> strs (map #(->hiccup-link {:text % :link %})))
+                                  :else [[:span (string/join " " strs)]]))))))))))))
 
 (comment
-  (render-text "https://github.com/coleslaw-org/coleslaw looks pretty cool!"))
+  (render-text "https://github.com/coleslaw-org/coleslaw looks pretty cool!")
+  (render-text "
+https://reddit.com/r/gameassets/comments/ydwe3e/retro_game_weapons_sound_effects_sound_effects/
+https://happysoulmusic.com/retro-game-weapons-sound-effects/
+https://github.com/coleslaw-org/coleslaw looks pretty cool!"))
 
 (defn render-text-and-links [s]
   (when s
