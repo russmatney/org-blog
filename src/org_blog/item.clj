@@ -97,25 +97,28 @@
 (defn is-url? [text]
   (boolean (re-seq #"^https?://" text)))
 
-(def org-link-re #"\[\[([^\]]*)\]\[([^\]]*)\]\]")
+(def org-link-re
+  "[[some-link-url][some link text]]"
+  #"\[\[([^\]]*)\]\[([^\]]*)\]\]")
+
+(declare interpose-inline-code)
 
 (defn ->hiccup-link [{:keys [text link]}]
   (when link
-    (let [id       (some->> (re-seq #"^id:([A-Za-z0-9-]*)" link) first second)
-          link-uri (when id (uri/*id->link-uri* id))]
+    (let [id         (some->> (re-seq #"^id:([A-Za-z0-9-]*)" link) first second)
+          link-uri   (when id (uri/*id->link-uri* id))
+          text-elems (->> text interpose-inline-code (map (fn [el] [:span el])))]
       (cond
         (and id link-uri)
         ;; TODO maybe flag intra-blog-note-links as a different color
-        [:a {:href link-uri}
-         [:span text]]
+        (->> text-elems (into [:a {:href link-uri}]))
 
         (and id (not link-uri))
         ;; TODO tooltip for 'maybe-future-link'
-        [:span text]
+        (->> text-elems (into [:span]))
 
         :else
-        [:a {:href link}
-         [:span text]]))))
+        (->> text-elems (into [:a {:href link}]))))))
 
 (defn parse-hiccup-link
   "Returns hiccup representing the next link in the passed string"
@@ -126,41 +129,86 @@
           text (some-> res first last)]
       (->hiccup-link {:text text :link link}))))
 
-(defn interpose-links [s]
+(def inline-code-re #"~([^~]*)~")
+
+(defn inline-code
+  "Returns a [:code] block wrapping the first match for the inline code regexp"
+  [s]
+  (when s
+    (let [res  (re-seq inline-code-re s)
+          text (some-> res first second)]
+      (when text
+        [:code text]))))
+
+(defn interpose-pattern [s pattern replace-first]
   (->> (loop [s s out []]
-         (let [next-link (parse-hiccup-link s)
-               parts     (string/split s org-link-re 2)]
+         (let [next-replacement (replace-first s)
+               parts            (string/split s pattern 2)]
            (if (< (count parts) 2)
-             (concat out (if next-link (conj parts next-link) parts))
+             (concat out (if next-replacement (conj parts next-replacement) parts))
              (let [[new-s rest] parts
-                   out          (concat out [new-s next-link])]
+                   out          (concat out [new-s next-replacement])]
                (recur rest out)))))
        (remove #{""})))
 
-(defn render-text
-  "Converts a passed string into spans.
-
-  Wraps naked urls in [:a {:href url} [:span url]]"
-  [text]
-  (->
-    text
-    (string/trim)
-    (string/split #" ")
-    (->>
-      (partition-by is-url?)
-      (map (fn [strs]
-             (let [f-str (-> strs first string/trim)]
-               (cond
-                 (and (= 1 (count strs)) (is-url? f-str))
-                 (->hiccup-link {:text f-str :link f-str})
-
-                 :else
-                 [:span (string/join " " strs)])))))))
+(defn interpose-inline-code [s]
+  (interpose-pattern s inline-code-re inline-code))
 
 (comment
-  (render-text "https://github.com/coleslaw-org/coleslaw looks pretty cool!")
-  ;; NOTE not handled here - see interpose-links
-  (render-text "[[https://www.patreon.com/russmatney][on patreon]]"))
+  (interpose-inline-code "")
+
+  (re-seq inline-code-re "* maybe ~goals~ :goals:")
+  (interpose-inline-code
+    "*     maybe ~goals~ :goals:
+**    [[id:bfc118eb-23b2-42c8-8379-2b0e249ddb76][~clawe~ note]]
+some ~famous blob~ with a list
+
+- fancy ~list with spaces~ and things
+- Another part of a list ~ without a tilda wrapper"))
+
+(defn interpose-links [s]
+  (interpose-pattern s org-link-re parse-hiccup-link))
+
+(comment
+  (def t "[[https://github.com/russmatney/some-repo][leading link]]
+    check out [[https://www.youtube.com/watch?v=Z9S_2FmLCm8][this video]] on youtube
+    and [[https://github.com/russmatney/org-blog][this repo]]
+    and [[https://github.com/russmatney/org-crud][this other repo]]")
+  (interpose-pattern t org-link-re parse-hiccup-link)
+  (interpose-links t))
+
+(defn render-text
+  "Converts a passed string into spans.
+  Wraps naked urls in [:a {:href url} [:span url]].
+  Inlines [:code] via `interpose-inline-code`.
+  Returns a seq of hiccup vectors."
+  [text]
+  (-> text interpose-inline-code
+      (->>
+        (mapcat
+          (fn [chunk]
+            (cond
+              (vector? chunk)
+              ;; wrapping [:code] in [:span]
+              [[:span chunk]]
+
+              (string? chunk)
+              (-> chunk
+                  string/trim
+                  (string/split #" ")
+                  (->>
+                    (partition-by is-url?)
+                    (map (fn [strs]
+                           (let [f-str (-> strs first string/trim)]
+                             (cond
+                               (and (= 1 (count strs)) (is-url? f-str))
+                               (->hiccup-link {:text f-str :link f-str})
+
+                               :else
+                               [:span (string/join " " strs)]))))))))))))
+
+(comment
+  (render-text "https://github.com/coleslaw-org/coleslaw looks pretty cool!"))
 
 (defn render-text-and-links [s]
   (when s

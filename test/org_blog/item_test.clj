@@ -51,7 +51,7 @@
     (let [t      "some title"
           node   (parse/parse-lines [(str "#+title: " t)])
           hiccup (item/item->hiccup-headline node)]
-      (is (= hiccup [:h1 [:span t]]))))
+      (is (= [:h1 [:span t]] hiccup))))
 
   (testing "displays expected headers"
     (let [content      (item/item->hiccup-content headers-test-case)
@@ -284,10 +284,9 @@ and [[https://github.com/russmatney/org-crud][this other repo]]")
 Only the strong survive in street ball.
 #+end_quote")
         content            (->> input-lines parse/parse-lines item/item->hiccup-content)
-        code-strings       (-> content
-                               (hiccup->elements #{:blockquote})
-                               (->> (mapcat #(hiccup->elements % #{:span})))
-                               elems->strings)
+        code-strings       (->> (hiccup->elements content #{:blockquote})
+                                (mapcat #(hiccup->elements % #{:span}))
+                                elems->strings)
         expected-code-strs #{"Only the strong survive in street ball."}]
     (is (= expected-code-strs code-strings))))
 
@@ -299,17 +298,20 @@ just:
 
 - cursor on the warning line
 - M-x lsp-execute-code-action
-- Select the suppress one
+- Select the ~suppress~ one
 Badabow!")
           content       (->> input parse/parse-lines item/item->hiccup-content)
-          strs          (-> (hiccup->elements content #{:span})
+          strs          (-> (hiccup->elements content #{:span :code})
                             elems->strings)
           expected-strs #{"some header"
                           "just:"
                           "Badabow!"
                           "cursor on the warning line"
                           "M-x lsp-execute-code-action"
-                          "Select the suppress one"}]
+                          "Select the"
+                          "suppress"
+                          "one"
+                          }]
       (is (= expected-strs strs))))
 
   (testing "ordered-lists"
@@ -318,12 +320,12 @@ Badabow!")
 just:
 
 1. cursor on the warning line
-1. M-x lsp-execute-code-action
+1. ~M-x lsp-execute-code-action~
 1. Select the suppress one
 Badabow!")
           content (->> input parse/parse-lines item/item->hiccup-content)
 
-          strs          (-> (hiccup->elements content #{:span})
+          strs          (-> (hiccup->elements content #{:span :code})
                             elems->strings)
           expected-strs #{"some header"
                           "just:"
@@ -338,10 +340,10 @@ Badabow!")
 * fave links
 
 - my site: https://danger.russmatney.com
-- M-x some-fn
+- ~M-x some-fn~
 - [[https://danger.russmatney.com][this repo]]")
           content       (->> input parse/parse-lines item/item->hiccup-content)
-          strs          (-> (hiccup->elements content #{:span})
+          strs          (-> (hiccup->elements content #{:span :code})
                             elems->strings)
           expected-strs #{"this repo"
                           "my site:"
@@ -350,3 +352,24 @@ Badabow!")
                           "fave links"}]
       content
       (is (= expected-strs strs)))) )
+
+
+(deftest item->hiccup-inline-code-test
+  (testing "strs wrapped in ~tilda~ get wrapped in [:code]"
+    (let [input (string/split-lines "
+*     maybe ~goals~ :goals:
+**    [[id:bfc118eb-23b2-42c8-8379-2b0e249ddb76][~clawe~ note]]
+some ~famous blob~ with a list
+
+- fancy ~list with spaces~ and things
+- Another part of a list ~ without a tilda wrapper
+")
+          content       (->> input parse/parse-lines item/item->hiccup-content)
+          strs          (-> (hiccup->elements content #{:code})
+                            elems->strings)
+          expected-strs #{"goals"
+                          "clawe"
+                          "famous blob"
+                          "list with spaces"}]
+      content
+      (is (= expected-strs strs)))))
