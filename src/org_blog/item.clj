@@ -5,7 +5,18 @@
    [clojure.string :as string]
    [org-crud.core :as org-crud]
    [org-blog.db :as db]
-   [org-blog.uri :as uri]))
+   [org-blog.uri :as uri]
+   [cybermonday.core :as cm]))
+
+
+(defn md->hiccup [md]
+  (-> md cm/parse-md :body))
+
+(comment
+  (cm/parse-md
+    "``` clojure
+(do (or (do not)))
+```"))
 
 (defn item-has-any-tags
   "Returns truthy if the item has at least one matching tag."
@@ -93,12 +104,12 @@
           link-uri (when id (uri/*id->link-uri* id))]
       (cond
         (and id link-uri)
-        ;; TODO maybe flag these as a different color
+        ;; TODO maybe flag intra-blog-note-links as a different color
         [:a {:href link-uri}
          [:span text]]
 
         (and id (not link-uri))
-        ;; TODO tooltip for 'future-link'
+        ;; TODO tooltip for 'maybe-future-link'
         [:span text]
 
         :else
@@ -160,7 +171,6 @@
          (interpose [:span " "]))))
 
 (comment
-
   (render-text-and-links
     "check out [[https://www.youtube.com/watch?v=Z9S_2FmLCm8][this video]] on youtube!")
 
@@ -183,20 +193,34 @@ and [[https://github.com/russmatney/org-crud][this other repo]]"))
                   6           :h6
                   :span)]))))
 
+(defn render-block [{:keys [content block-type qualifier]}]
+  (cond
+    (#{"src" "SRC"} block-type)
+    (md->hiccup
+      (str "``` " qualifier "\n"
+           (->> content (map :text) (string/join "\n"))
+           "\n```")))
+  )
+
 (defn item->hiccup-body [item]
   (->> item :org/body
        (partition-by (comp #{:blank :metadata} :line-type))
        (map (fn [group]
-              (let [first-elem-type (-> group first :line-type)]
+              (let [first-elem           (-> group first)
+                    first-elem-line-type (-> first-elem :line-type)]
                 (cond
-                  (#{:blank} first-elem-type) [:br]
-                  (#{:table-row} first-elem-type)
+                  (#{:blank} first-elem-line-type) [:br]
+
+                  (#{:table-row} first-elem-line-type)
                   (->> group (map :text)
                        ;; join the lines so we can handle multi-line links
                        ;; NOTE here we forego the original line breaks :/
                        (string/join " ")
                        (render-text-and-links)
-                       (into [:p]))))))))
+                       (into [:p]))
+
+                  (#{:block} (:type first-elem))
+                  (render-block group)))))))
 
 (defn item->hiccup-content [item]
   (let [children (->> item :org/items (map item->hiccup-content))]

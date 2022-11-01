@@ -262,10 +262,6 @@ and [[https://github.com/russmatney/org-crud][this other repo]]")
       (is (= 0 (count a-elems)))
       (is (= expected-strings strings)))) )
 
-
-
-
-
 (deftest item->hiccup-src-block-test
   (let [input-lines
         (string/split-lines "
@@ -275,9 +271,8 @@ and [[https://github.com/russmatney/org-crud][this other repo]]")
 (defn some-func [s]
   (println s))
 #+END_SRC")
-        content (->> input-lines parse/parse-lines item/item->hiccup-content)]
-    content
-
-    ;; TODO consider helpers for colorizing code block
-    ;; TODO consider org -> markdown -> html
-    ))
+        content            (->> input-lines parse/parse-lines item/item->hiccup-content)
+        code-strings       (-> content (hiccup->elements #{:code}) elems->strings)
+        expected-code-strs #{"(defn some-func [s]
+  (println s))"}]
+    (is (= expected-code-strs code-strings))))

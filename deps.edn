@@ -3,15 +3,17 @@
          russmatney/org-crud {:local/root "../org-crud"}
          russmatney/clawe    {:local/root "../clawe"}
 
-         ;; clerk
          io.github.nextjournal/clerk {:mvn/version "0.11.603"}
          teknql/systemic             {:mvn/version "0.2.1"}
          aero/aero                   {:mvn/version "1.1.6"}
          juxt/dirwatch               {:mvn/version "0.2.5"}
-         kkinnear/zprint {:git/url "https://github.com/kkinnear/zprint"
-                          :git/tag "1.2.5-alpha1"
-                          :git/sha "15ea82a"}
+
+         kkinnear/zprint  {:git/url "https://github.com/kkinnear/zprint"
+                           :git/tag "1.2.5-alpha1"
+                           :git/sha "15ea82a"}
          babashka/process {:git/url "https://github.com/babashka/process"
                            :git/tag "v0.3.11"
-                           :git/sha "ff4085c"}}
+                           :git/sha "ff4085c"}
+
+         com.kiranshila/cybermonday {:mvn/version "0.4.184"}}
  :aliases {}}
