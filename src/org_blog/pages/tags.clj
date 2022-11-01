@@ -4,7 +4,9 @@
    [nextjournal.clerk :as clerk]
 
    [org-blog.item :as item]
-   [org-blog.notes :as notes]))
+   [org-blog.notes :as notes]
+   [org-blog.config :as config]
+   [org-blog.render :as render]))
 
 (def ^:dynamic *notes* (notes/published-notes))
 
@@ -54,6 +56,12 @@
      (notes-by-tag *notes*)
      (map (fn [[tag notes]] (tag-block {:tag tag :notes notes})))
      (into [:div]))])
+
+(comment
+  (render/write-page
+    {:path    (str (config/blog-content-root) "/tags.html")
+     :content (page)
+     :title   "Home"}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}

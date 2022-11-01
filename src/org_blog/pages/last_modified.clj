@@ -7,7 +7,8 @@
 
    [org-blog.item :as item]
    [org-blog.render :as render]
-   [org-blog.notes :as notes]))
+   [org-blog.notes :as notes]
+   [org-blog.config :as config]))
 
 (def ^:dynamic *notes* (notes/published-notes))
 
@@ -46,7 +47,7 @@
 
 (comment
   (render/write-page
-    {:path    "public/last-modified.html"
+    {:path    (str (config/blog-content-root) "/last-modified.html")
      :content (page)
      :title   "By Modified Date"}))
 

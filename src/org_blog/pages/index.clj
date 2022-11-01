@@ -8,7 +8,8 @@
    [org-blog.item :as item]
    [org-blog.notes :as notes]
    [clojure.set :as set]
-   [org-blog.render :as render]))
+   [org-blog.render :as render]
+   [org-blog.config :as config]))
 
 (def ^:dynamic *notes* (notes/published-notes))
 
@@ -94,7 +95,7 @@
 
 (comment
   (render/write-page
-    {:path    "public/index.html"
+    {:path    (str (config/blog-content-root) "/index.html")
      :content (page)
      :title   "Home"}))
 

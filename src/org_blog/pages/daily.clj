@@ -7,7 +7,8 @@
 
    [org-blog.item :as item]
    [org-blog.render :as render]
-   [org-blog.uri :as uri]))
+   [org-blog.uri :as uri]
+   [org-blog.config :as config]))
 
 ^{::clerk/no-cache true}
 (def ^:dynamic *note*
@@ -28,7 +29,7 @@
 
 (comment
   (render/write-page
-    {:path    (str "public" (uri/note->uri *note*))
+    {:path    (str (config/blog-content-root) (uri/note->uri *note*))
      :content (page *note*)
      :title   (:org/name *note*)}))
 

@@ -8,7 +8,8 @@
    [org-blog.pages.note :as pages.note]
    [org-blog.pages.last-modified :as pages.last-modified]
    [org-blog.pages.index :as pages.index]
-   [org-blog.pages.tags :as pages.tags]))
+   [org-blog.pages.tags :as pages.tags]
+   [org-blog.config :as config]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ "publish funcs"
@@ -29,17 +30,15 @@
       (do
         (println "[PUBLISH] exporting note: " (:org/short-path note))
         (if (-> note :org/source-file (string/includes? "/daily/"))
-          (with-bindings
-            {#'pages.daily/*note* note}
-            (render/path+ns-sym->spit-static-html
-              (str "public" (uri/note->uri note))
-              'org-blog.pages.daily))
+          (render/write-page
+            {:path    (str (config/blog-content-root) (uri/note->uri note))
+             :content (pages.daily/page note)
+             :title   (:org/name note)})
 
-          (with-bindings
-            {#'pages.note/*note* note}
-            (render/path+ns-sym->spit-static-html
-              (str "public" (uri/note->uri note))
-              'org-blog.pages.note)))))))
+          (render/write-page
+            {:path    (str (config/blog-content-root) (uri/note->uri note))
+             :content (pages.note/page note)
+             :title   (:org/name note)}))))))
 
 (defn publish-notes []
   (let [notes-to-publish (notes/published-notes)]
@@ -47,23 +46,23 @@
       (publish-note note))))
 
 (defn publish-index-by-tag []
-  (println "[EXPORT] exporting index-by-tag.")
+  (println "[PUBLISH] exporting index-by-tag.")
   (render/write-page
-    {:path    "public/tags.html"
+    {:path    (str (config/blog-content-root) "/tags.html")
      :content (pages.tags/page)
      :title   "Notes By Tag"}))
 
 (defn publish-index-by-last-modified []
-  (println "[EXPORT] exporting index-by-last-modified.")
+  (println "[PUBLISH] exporting index-by-last-modified.")
   (render/write-page
-    {:path    "public/last-modified.html"
+    {:path    (str (config/blog-content-root) "/last-modified.html")
      :content (pages.last-modified/page)
      :title   "Notes By Modified Date"}))
 
 (defn publish-index []
-  (println "[EXPORT] exporting index.")
+  (println "[PUBLISH] exporting index.")
   (render/write-page
-    {:path    "public/index.html"
+    {:path    (str (config/blog-content-root) "/index.html")
      :content (pages.index/page)
      :title   "Home"}))
 

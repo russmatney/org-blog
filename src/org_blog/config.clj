@@ -3,7 +3,8 @@
    [clojure.pprint :as pprint]
    [aero.core :as aero]
    [clojure.java.io :as io]
-   [systemic.core :as sys :refer [defsys]]))
+   [systemic.core :as sys :refer [defsys]]
+   [babashka.fs :as fs]))
 
 
 (def res (io/resource "config.edn"))
@@ -24,6 +25,15 @@
         ;; note this is not a deep merge
         (merge @*config* updated-config)]
     (pprint/pprint updated-config (io/writer res))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; blog content root
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn blog-content-root []
+  ;; TODO rework to read/write from config
+  (str (fs/home) "/russmatney/org-blog-content/public"))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; export-mode
