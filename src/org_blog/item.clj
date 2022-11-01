@@ -314,14 +314,19 @@ and [[https://github.com/russmatney/org-crud][this other repo]]"))
                   (#{:block} (:type first-elem))
                   (render-block group)))))))
 
-(defn item->hiccup-content [item]
-  (let [children (->> item :org/items (map item->hiccup-content))]
-    (->>
-      (concat
-        [(item->hiccup-headline item)]
-        (item->hiccup-body item)
-        children)
-      (into [:div]))))
+(defn item->hiccup-content
+  ([item] (item->hiccup-content item nil))
+  ([item opts]
+   (let [children
+         (when-not (:skip-children opts)
+           (->> item :org/items (map item->hiccup-content)))]
+     (->>
+       (concat
+         [(item->hiccup-headline item)]
+         (when-not (:skip-body opts)
+           (item->hiccup-body item))
+         children)
+       (into [:div])))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; links and backlinks
@@ -340,8 +345,7 @@ and [[https://github.com/russmatney/org-crud][this other repo]]"))
                      ;; that don't have parents, too much is pulled and unraveled
                      (org-crud.markdown/item->md-body
                        item
-                       {:id->link-uri uri/*id->link-uri*}
-                       )))))))
+                       {:id->link-uri uri/*id->link-uri*})))))))
 
 (defn backlinks
   "Returns markdown representing a list of backlinks for given `:org/id`"
@@ -351,6 +355,28 @@ and [[https://github.com/russmatney/org-crud][this other repo]]"))
       (concat
         ["---" "" "# Backlinks" ""]
         blink-lines))))
+
+(defn id->backlink-hiccup [id]
+  (let [backlink-notes (->>
+                         ;; NOTE this does not yet support inlining backlink content
+                         ;; from items without uuids
+                         ;; TODO improve backlink content inlining
+                         id db/notes-linked-from
+                         (filter (comp uri/*id->link-uri* :org/id)))]
+    (when (seq backlink-notes)
+      [:div
+       [:h1 "Backlinks"]
+       (->> backlink-notes
+            (mapcat (fn [note]
+                      (concat
+                        [[:a {:href (uri/*id->link-uri* (:org/id note))}
+                          (item->hiccup-headline note)]]
+                        (item->hiccup-body note))))
+            (into [:div]))])))
+
+(comment
+  (id->backlink-hiccup
+    #uuid "2e856678-0711-48f5-94d6-516432e8e2b7"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; note row

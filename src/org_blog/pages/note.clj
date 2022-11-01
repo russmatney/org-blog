@@ -1,7 +1,6 @@
 (ns org-blog.pages.note
   {:nextjournal.clerk/visibility {:code :hide :result :hide}}
   (:require
-   [clojure.string :as string]
    [nextjournal.clerk :as clerk]
 
    [org-blog.item :as item]
@@ -16,19 +15,11 @@
        (sort-by :file/last-modified)
        last))
 
-(defn note->content
-  [note]
-  ;; TODO opt-in/out of note children?
-  (->> note item/item->md-content (string/join "\n")))
-
-(comment
-  (item/item->md-content *note*)
-  (note->content *note*))
-
 (defn page [note]
   [:div
    (item/item->hiccup-content note)
-   ])
+   (item/id->backlink-hiccup (:org/id *note*))])
+
 
 (comment
   (render/write-page
@@ -41,9 +32,3 @@
 
 ^{::clerk/no-cache true}
 (clerk/html (page *note*))
-
-^{::clerk/no-cache true}
-(clerk/md (note->content *note*))
-
-^{::clerk/no-cache true}
-(clerk/md (->> (item/backlinks (:org/id *note*)) (string/join "\n")))
