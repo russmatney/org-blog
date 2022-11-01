@@ -9,6 +9,7 @@
    [cybermonday.core :as cm]))
 
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn md->hiccup [md]
   (-> md cm/parse-md :body))
 
@@ -193,13 +194,51 @@ and [[https://github.com/russmatney/org-crud][this other repo]]"))
                   6           :h6
                   :span)]))))
 
-(defn render-block [{:keys [content block-type qualifier]}]
+(defn render-list [lines]
+  (let [type (->> lines first :line-type)]
+    (cond
+      (#{:unordered-list} type)
+      (->> lines
+           (map (fn [{:keys [text]}]
+                  (-> text (string/replace #"^- " "")
+                      render-text-and-links
+                      (->> (into [:li])) )))
+           (into [:ul]))
+
+      (#{:ordered-list} type)
+      (->> lines
+           (map (fn [{:keys [text]}]
+                  (-> text (string/replace #"^\d+\. " "")
+                      render-text-and-links
+                      (->> (into [:li])))))
+           (into [:ol]))
+
+      :else
+      (println "[WARN]: unknown list type" (->> lines first)))))
+
+(defn render-block [{:keys [content block-type qualifier] :as _block}]
   (cond
     (#{"src" "SRC"} block-type)
     [:div
      [:pre
       [:code {:class (str "language-" qualifier)}
-       (->> content (map :text) (string/join "\n"))]]]))
+       (->> content (map :text) (string/join "\n"))]]]
+
+    (#{"quote" "QUOTE"} block-type)
+    [:blockquote
+     (->> content (map :text)
+          (map (fn [t] [:span t]))
+          (interpose [:span " "])
+          (into [:p]))]
+
+    :else
+    (do
+      (println "[WARN]: unknown block type, using fallback block markup")
+      [:div
+       (->> content (map :text)
+            (map (fn [t] [:span t]))
+            (interpose [:span " "])
+            (into [:p]))])))
 
 (defn item->hiccup-body [item]
   (->> item :org/body
@@ -217,6 +256,9 @@ and [[https://github.com/russmatney/org-crud][this other repo]]"))
                        (string/join " ")
                        (render-text-and-links)
                        (into [:p]))
+
+                  (#{:unordered-list :ordered-list} first-elem-line-type)
+                  (render-list group)
 
                   (#{:block} (:type first-elem))
                   (render-block group)))))))

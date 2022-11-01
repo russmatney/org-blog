@@ -263,8 +263,7 @@ and [[https://github.com/russmatney/org-crud][this other repo]]")
       (is (= expected-strings strings)))) )
 
 (deftest item->hiccup-src-block-test
-  (let [input-lines
-        (string/split-lines "
+  (let [input-lines (string/split-lines "
 * some loop/recur :code:
 
 #+BEGIN_SRC clojure
@@ -276,3 +275,78 @@ and [[https://github.com/russmatney/org-crud][this other repo]]")
         expected-code-strs #{"(defn some-func [s]
   (println s))"}]
     (is (= expected-code-strs code-strings))))
+
+(deftest item->hiccup-quote-block-test
+  (let [input-lines (string/split-lines "
+* some quoted thing
+
+#+begin_quote nba-street-volume-2
+Only the strong survive in street ball.
+#+end_quote")
+        content            (->> input-lines parse/parse-lines item/item->hiccup-content)
+        code-strings       (-> content
+                               (hiccup->elements #{:blockquote})
+                               (->> (mapcat #(hiccup->elements % #{:span})))
+                               elems->strings)
+        expected-code-strs #{"Only the strong survive in street ball."}]
+    (is (= expected-code-strs code-strings))))
+
+(deftest item->hiccup-list-items-test
+  (testing "unordered-lists"
+    (let [input (string/split-lines "
+* some header
+just:
+
+- cursor on the warning line
+- M-x lsp-execute-code-action
+- Select the suppress one
+Badabow!")
+          content       (->> input parse/parse-lines item/item->hiccup-content)
+          strs          (-> (hiccup->elements content #{:span})
+                            elems->strings)
+          expected-strs #{"some header"
+                          "just:"
+                          "Badabow!"
+                          "cursor on the warning line"
+                          "M-x lsp-execute-code-action"
+                          "Select the suppress one"}]
+      (is (= expected-strs strs))))
+
+  (testing "ordered-lists"
+    (let [input (string/split-lines "
+* some header
+just:
+
+1. cursor on the warning line
+1. M-x lsp-execute-code-action
+1. Select the suppress one
+Badabow!")
+          content (->> input parse/parse-lines item/item->hiccup-content)
+
+          strs          (-> (hiccup->elements content #{:span})
+                            elems->strings)
+          expected-strs #{"some header"
+                          "just:"
+                          "Badabow!"
+                          "cursor on the warning line"
+                          "M-x lsp-execute-code-action"
+                          "Select the suppress one"}]
+      (is (= expected-strs strs))))
+
+  (testing "list with links"
+    (let [input (string/split-lines "
+* fave links
+
+- my site: https://danger.russmatney.com
+- M-x some-fn
+- [[https://danger.russmatney.com][this repo]]")
+          content       (->> input parse/parse-lines item/item->hiccup-content)
+          strs          (-> (hiccup->elements content #{:span})
+                            elems->strings)
+          expected-strs #{"this repo"
+                          "my site:"
+                          "https://danger.russmatney.com"
+                          "M-x some-fn"
+                          "fave links"}]
+      content
+      (is (= expected-strs strs)))) )
