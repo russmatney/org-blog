@@ -1,23 +1,11 @@
 (ns org-blog.item
   (:require
    [clojure.set :as set]
-   [org-crud.markdown :as org-crud.markdown]
    [clojure.string :as string]
+   [org-crud.markdown :as org-crud.markdown]
    [org-crud.core :as org-crud]
    [org-blog.db :as db]
-   [org-blog.uri :as uri]
-   [cybermonday.core :as cm]))
-
-
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defn md->hiccup [md]
-  (-> md cm/parse-md :body))
-
-(comment
-  (cm/parse-md
-    "``` clojure
-(do (or (do not)))
-```"))
+   [org-blog.uri :as uri]))
 
 (defn item-has-any-tags
   "Returns truthy if the item has at least one matching tag."
@@ -49,17 +37,18 @@
   (->> item org-crud/nested-item->flattened-items
        (mapcat :org/links-to) (into #{})))
 
-(defn item->tag-line
-  ([item] (item->tag-line nil item))
-  ([opts item]
-   (let [tags
-         (if (:include-child-tags opts)
-           (->> item org-crud/nested-item->flattened-items
-                (mapcat :org/tags) (into #{}))
-           (:org/tags item))]
-     (when (seq tags)
-       (->> tags (map #(str ":" %)) (string/join "\t"))))))
+#_(defn item->tag-line
+    ([item] (item->tag-line nil item))
+    ([opts item]
+     (let [tags
+           (if (:include-child-tags opts)
+             (->> item org-crud/nested-item->flattened-items
+                  (mapcat :org/tags) (into #{}))
+             (:org/tags item))]
+       (when (seq tags)
+         (->> tags (map #(str ":" %)) (string/join "\t"))))))
 
+;; TODO rewrite without org-crud.markdown
 (defn item->name-str
   ([item] (item->name-str item nil))
   ([item opts]
@@ -67,28 +56,11 @@
          [title] (org-crud.markdown/item->md-body item opts)]
      title)))
 
+;; TODO rewrite without org-crud.markdown
 (defn item->plain-title [item]
   (-> item :org/name
       (org-crud.markdown/org-line->md-line
         {:id->link-uri (fn [_] nil)})))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; markdown helpers
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn item->md-content
-  "Returns a seq of strings"
-  ([item] (item->md-content item nil))
-  ([item opts]
-   (let [opts (merge {:id->link-uri uri/*id->link-uri*} opts)
-         [title & body]
-         (org-crud.markdown/item->md-body item opts)]
-     (concat
-       [title
-        (when-let [tag-line (item->tag-line item)]
-          (str "### " tag-line))
-        ""]
-       body))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; hiccup helpers
@@ -232,18 +204,21 @@ check out [[https://www.youtube.com/watch?v=Z9S_2FmLCm8][this video]] on youtube
 and [[https://github.com/russmatney/org-blog][this repo]]
 and [[https://github.com/russmatney/org-crud][this other repo]]"))
 
-(defn item->hiccup-headline [item]
-  (when (:org/name item)
-    (->> item :org/name render-text-and-links
-         (into [(case (:org/level item)
-                  :level/root :h1
-                  1           :h1
-                  2           :h2
-                  3           :h3
-                  4           :h4
-                  5           :h5
-                  6           :h6
-                  :span)]))))
+(defn item->hiccup-headline
+  ([item] (item->hiccup-headline item nil))
+  ([item opts]
+   (when (:org/name item)
+     (->> item :org/name render-text-and-links
+          (into [(or (:header-override opts)
+                     (case (:org/level item)
+                       :level/root :h1
+                       1           :h1
+                       2           :h2
+                       3           :h3
+                       4           :h4
+                       5           :h5
+                       6           :h6
+                       :span))])))))
 
 (defn render-list [lines]
   (let [type (->> lines first :line-type)]
@@ -298,7 +273,7 @@ and [[https://github.com/russmatney/org-crud][this other repo]]"))
               (let [first-elem           (-> group first)
                     first-elem-line-type (-> first-elem :line-type)]
                 (cond
-                  (#{:blank} first-elem-line-type) [:br]
+                  (#{:blank} first-elem-line-type) nil #_ [:br]
 
                   (#{:table-row} first-elem-line-type)
                   (->> group (map :text)
@@ -332,30 +307,6 @@ and [[https://github.com/russmatney/org-crud][this other repo]]"))
 ;; links and backlinks
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn backlink-list
-  [id]
-  (->> id
-       db/notes-linked-from
-       (filter (comp uri/*id->link-uri* :org/id)) ;; filter if not 'published'
-       (mapcat (fn [item]
-                 (let [link-name (:org/parent-name item (:org/name item))]
-                   (concat
-                     [(str "### [" link-name "](" (-> item :org/id uri/*id->link-uri*) ")")]
-                     ;; disabled backlink content for now b/c for links from dailies
-                     ;; that don't have parents, too much is pulled and unraveled
-                     (org-crud.markdown/item->md-body
-                       item
-                       {:id->link-uri uri/*id->link-uri*})))))))
-
-(defn backlinks
-  "Returns markdown representing a list of backlinks for given `:org/id`"
-  [id]
-  (let [blink-lines (backlink-list id)]
-    (when (seq blink-lines)
-      (concat
-        ["---" "" "# Backlinks" ""]
-        blink-lines))))
-
 (defn id->backlink-hiccup [id]
   (let [backlink-notes (->>
                          ;; NOTE this does not yet support inlining backlink content
@@ -365,13 +316,16 @@ and [[https://github.com/russmatney/org-crud][this other repo]]"))
                          (filter (comp uri/*id->link-uri* :org/id)))]
     (when (seq backlink-notes)
       [:div
+       [:br]
        [:h1 "Backlinks"]
        (->> backlink-notes
-            (mapcat (fn [note]
-                      (concat
-                        [[:a {:href (uri/*id->link-uri* (:org/id note))}
-                          (item->hiccup-headline note)]]
-                        (item->hiccup-body note))))
+            (map (fn [note]
+                   (->>
+                     (concat
+                       [[:a {:href (uri/*id->link-uri* (:org/id note))}
+                         (item->hiccup-headline note {:header-override :h3})]]
+                       (item->hiccup-body note))
+                     (into [:div {:class "pb-4"}]))))
             (into [:div]))])))
 
 (comment
