@@ -196,11 +196,10 @@ and [[https://github.com/russmatney/org-crud][this other repo]]"))
 (defn render-block [{:keys [content block-type qualifier]}]
   (cond
     (#{"src" "SRC"} block-type)
-    (md->hiccup
-      (str "``` " qualifier "\n"
-           (->> content (map :text) (string/join "\n"))
-           "\n```")))
-  )
+    [:div
+     [:pre
+      [:code {:class (str "language-" qualifier)}
+       (->> content (map :text) (string/join "\n"))]]]))
 
 (defn item->hiccup-body [item]
   (->> item :org/body
