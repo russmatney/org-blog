@@ -10,17 +10,12 @@
    [org-blog.notes :as notes]
    [org-blog.config :as config]))
 
-(def ^:dynamic *notes* (notes/published-notes))
-
 (defn notes-by-day [notes]
   (->> notes
        (map #(dissoc % :org/body))
        (group-by #(-> % :file/last-modified dates/parse-time-string t/date))
        (map (fn [[k v]] [k (into [] v)]))
        (sort-by first t/>)))
-
-(comment
-  (notes-by-day *notes*))
 
 (defn day-block [{:keys [day notes]}]
   [:div
@@ -41,7 +36,7 @@
     [:h2 {:class ["font-mono"]} "Notes By Date Modified"]]
 
    (->>
-     (notes-by-day *notes*)
+     (notes-by-day (notes/published-notes))
      (map (fn [[day notes]] (day-block {:day day :notes notes})))
      (into [:div]))])
 

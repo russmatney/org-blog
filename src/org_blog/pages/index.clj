@@ -11,8 +11,6 @@
    [org-blog.render :as render]
    [org-blog.config :as config]))
 
-(def ^:dynamic *notes* (notes/published-notes))
-
 (defn notes-by-day [notes]
   (->> notes
        (map #(dissoc % :org/body))
@@ -20,8 +18,6 @@
        (map (fn [[k v]] [k (into [] v)]))
        (sort-by first t/>)))
 
-(comment
-  (notes-by-day *notes*))
 
 (defn day-block [{:keys [day notes]}]
   [:div
@@ -88,7 +84,7 @@
     [:h3 "Recently modified"]
     [:div
      (->>
-       (notes-by-day *notes*)
+       (notes-by-day (notes/published-notes))
        (take 5) ;; 5 most recent day blocks
        (map (fn [[day notes]] (day-block {:day day :notes notes})))
        (into [:div]))]]])
