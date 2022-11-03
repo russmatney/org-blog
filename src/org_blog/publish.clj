@@ -76,8 +76,10 @@
 (defn publish-all
   ;; TODO delete notes that aren't here?
   []
+  ;; TODO disable watchers before running this
   (publish-notes)
-  (publish-indexes))
+  (publish-indexes)
+  (render/write-styles))
 
 (comment
   (publish-all))

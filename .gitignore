@@ -9,3 +9,4 @@ tmp/
 .nrepl-port
 .clj-kondo/.cache
 .clerk/
+node_modules/

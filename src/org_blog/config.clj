@@ -38,8 +38,14 @@
   (let [updated-config
         ;; note this is not a deep merge
         (merge @*config* updated-config)]
+    ;; TODO move to zprint for consistent map order'n'such
     (pprint/pprint updated-config (io/writer res))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; google analytics id
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn get-google-analytics-id [] (:google-analytics-id @*config*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; export-mode
@@ -54,8 +60,7 @@
   (not nil)
   (export-mode?)
   (toggle-export-mode)
-  (set-export-mode true)
-  )
+  (set-export-mode true))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; note defs
