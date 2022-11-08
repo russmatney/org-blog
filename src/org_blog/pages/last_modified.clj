@@ -12,6 +12,7 @@
 
 (defn notes-by-day [notes]
   (->> notes
+       (filter :file/last-modified)
        (map #(dissoc % :org/body))
        (group-by #(-> % :file/last-modified dates/parse-time-string t/date))
        (map (fn [[k v]] [k (into [] v)]))
@@ -37,7 +38,9 @@
 
    (->>
      (notes-by-day (notes/published-notes))
-     (map (fn [[day notes]] (day-block {:day day :notes notes})))
+     (map (fn [[day notes]]
+            (when day
+              (day-block {:day day :notes notes}))))
      (into [:div]))])
 
 (comment

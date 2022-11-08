@@ -27,7 +27,7 @@
                    ;; helps to surface them
                    [nil]))))
          {})
-       (sort-by (comp count second) >)))
+       (sort-by (comp (fn [x] (if x (count x) 0)) second) >)))
 
 (defn tag-block [{:keys [tag notes]}]
   [:div
@@ -49,7 +49,9 @@
     [:h2 {:class ["font-mono"]} "Notes By Tag"]]
    (->>
      (notes-by-tag (notes/published-notes))
-     (map (fn [[tag notes]] (tag-block {:tag tag :notes notes})))
+     (map (fn [[tag notes]]
+            (when (and tag (seq notes))
+              (tag-block {:tag tag :notes notes}))))
      (into [:div]))])
 
 (comment

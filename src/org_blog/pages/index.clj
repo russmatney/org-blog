@@ -13,11 +13,11 @@
 
 (defn notes-by-day [notes]
   (->> notes
+       (filter :file/last-modified)
        (map #(dissoc % :org/body))
        (group-by #(-> % :file/last-modified dates/parse-time-string t/date))
        (map (fn [[k v]] [k (into [] v)]))
        (sort-by first t/>)))
-
 
 (defn day-block [{:keys [day notes]}]
   [:div
@@ -98,4 +98,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
 
+^::clerk/no-cache
 (clerk/html (page))

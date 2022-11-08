@@ -90,7 +90,12 @@
         (->> text-elems (into [:span]))
 
         :else
-        (->> text-elems (into [:a {:href link}]))))))
+        (cond
+          (string/starts-with? link "http")
+          (->> text-elems (into [:a {:href link}]))
+
+          :else
+          (->> text-elems (into [:span])))))))
 
 (defn parse-hiccup-link
   "Returns hiccup representing the next link in the passed string"
