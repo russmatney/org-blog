@@ -1,10 +1,10 @@
 (ns org-blog.config
   (:require
-   [clojure.pprint :as pprint]
    [aero.core :as aero]
-   [clojure.java.io :as io]
    [systemic.core :as sys :refer [defsys]]
-   [babashka.fs :as fs]))
+   [babashka.fs :as fs]
+   [zprint.core :as zp]
+   [clojure.string :as string]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; blog content root
@@ -21,9 +21,9 @@
   (str (blog-content-root) "/blog.edn"))
 
 
-(def res (blog-content-config))
+(def blog-edn (blog-content-config))
 
-(defn ->config [] (aero/read-config res))
+(defn ->config [] (aero/read-config blog-edn))
 
 (defsys *config* :start (atom (->config)))
 
@@ -38,8 +38,9 @@
   (let [updated-config
         ;; note this is not a deep merge
         (merge @*config* updated-config)]
-    ;; TODO move to zprint for consistent map order'n'such
-    (pprint/pprint updated-config (io/writer res))))
+    (spit blog-edn (-> updated-config
+                       (zp/zprint-str 100)
+                       (string/replace "," "")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; google analytics id
