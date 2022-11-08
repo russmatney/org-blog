@@ -2,7 +2,6 @@
   {:nextjournal.clerk/visibility {:code :hide :result :hide}}
   (:require
    [nextjournal.clerk :as clerk]
-   [org-crud.core :as org-crud]
 
    [ralphie.notify :as notify]
    [ralphie.emacs :as emacs]
@@ -18,86 +17,42 @@
 #_ "recent daily notes"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+#_ "
+A set of post short-names to skip for now.
+This supports the don't-publish-now use-case.
+"
+(defonce skipped-notes
+  (atom #{}))
+
 (def recent-file-count 14)
-
-(defn calc-recent-notes
-  "A list of recently edited files that have not necessarily been marked 'published'."
-  []
-  (->> (db/all-notes)
-       (sort-by :file/last-modified)
-       (reverse)
-       (take recent-file-count)))
-
-(comment
-  (calc-recent-notes))
 
 (defn calc-recent-unpublished-notes
   "A list of recently edited files that have not necessarily been marked 'published'."
   []
-  (->> (db/all-notes)
-       (sort-by :file/last-modified)
-       (reverse)
-       (remove (fn [note] (notes/published-id? (:org/id note))))
-       (take recent-file-count)))
+  (->>
+    (db/all-notes)
+    (remove (comp @skipped-notes :org/short-path))
+    ;; (filter (comp seq #(set/intersection #{"project"} %) :org/tags))
+    (filter
+      (fn [note] (->> note :org/items (filter (comp seq :org/tags)) seq)))
+    (sort-by :file/last-modified)
+    (reverse)
+    (remove (fn [note] (notes/published-id? (:org/id note))))
+    (take recent-file-count)))
 
 (comment
   (calc-recent-unpublished-notes))
 
-^::clerk/no-cache
-(def recent-notes (calc-recent-notes))
-
-^::clerk/no-cache
-(def recent-unpublished-notes (calc-recent-unpublished-notes))
 (def published-notes (notes/published-notes))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-#_ "linked ids"
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn collect-linked-ids
-  "Collects ids that the published notes link to."
-  ([] (collect-linked-ids nil))
-  ([_opts]
-   (let [all-items (->> published-notes (mapcat org-crud/nested-item->flattened-items))]
-     (->> all-items (mapcat :org/links-to) (map :link/id)))))
-
-;; TODO figure out what we want here
-(defn collect-backlinked-ids
-  ([] (collect-linked-ids nil))
-  ([_opts]
-   (let [all-item-ids (->> (db/all-flattened-notes-by-id) keys
-                           ;; we might be dropping inner org item links here
-                           (remove nil?))]
-     (->> all-item-ids (mapcat db/ids-linked-from)))))
-
-(comment
-  (->>
-    (collect-linked-ids)
-    frequencies
-    (sort-by second >))
-  (->>
-    (collect-backlinked-ids)
-    frequencies))
-
-^{::clerk/no-cache true}
-(def linked-items (->> (collect-linked-ids)
-                       frequencies
-                       (sort-by second >)
-                       (map (fn [[id ct]]
-                              (assoc ((db/notes-by-id) id) :linked-count ct)))))
-
-;; ^{::clerk/no-cache true}
-;; (def backlinked-items (->> (collect-backlinked-ids)
-;;                            frequencies
-;;                            (sort-by second >)
-;;                            (map (fn [[id ct]]
-;;                                   (assoc ((db/notes-by-id) id)
-;;                                          :backlinked-count ct)))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ actions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn skip-note! [short-path]
+  (notify/notify "skipping note" short-path)
+  (swap! skipped-notes conj short-path))
 
 (defn publish-note! [short-path]
   (notify/notify "publishing note" short-path)
@@ -213,6 +168,18 @@
                     :on-click (fn [_] (swap! show-links update i not))}
                    (if (@show-links i) "hide links" "show links")])
 
+                (when (and (not (:skipped note))
+                           (not (:published note)))
+                  [:button
+                   {:class    ["bg-gray-700" "hover:bg-gray-600"
+                               "text-slate-300" "font-bold"
+                               "py-2" "px-4" "m-1"
+                               "rounded"]
+                    :on-click (fn [_] (v/clerk-eval
+                                        `(org-blog.export/skip-note!
+                                           ~(-> note :org/short-path))))}
+                   "skip"])
+
                 (when (not (:published note))
                   [:button
                    {:class    ["bg-blue-700" "hover:bg-blue-600"
@@ -291,7 +258,7 @@
                          [:div
                           [:span
                            {:class ["font-mono"
-                                    (if (:published item)
+                                    (if (:published link)
                                       "text-emerald-400"
                                       "text-red-400")]}
                            (str
@@ -331,16 +298,13 @@
                      {:class ["border" "border-slate-600" "w-full"
                               "mt-3" "mb-2"]}]])])]))]))})
 
-(defn select-org-keys [note]
-  (select-keys note [:org/name :org/tags #_ :org/id #_ :org/short-path
-                     #_ :org/links-to :org/level :org/body-string]))
-
 (defn merge-item-into-link [{:keys [link/id] :as link}]
   (merge link ((db/notes-by-id) id)))
 
 (defn decorate-note [note]
   (-> note
       (assoc :published (notes/published-id? (:org/id note)))
+      (assoc :skipped (@skipped-notes (:org/id note)))
       (assoc :all-tags (item/item->all-tags note))
       (assoc :all-links (->> (item/item->all-links note)
                              (map merge-item-into-link)))
@@ -353,55 +317,29 @@
                               (->>
                                 items
                                 (map merge-item-into-link)
+                                (map (fn [it]
+                                       (assoc it :published (notes/published-id? (:org/id note)))))
                                 ;; (map decorate-note)
                                 )))
       (update :org/items (fn [items] (map decorate-note items)))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
 
-;; ### recently modified
-
-^{::clerk/viewer note-publish-buttons
-  ::clerk/width  :wide}
-(->>
-  recent-notes
-  (take 5)
-  (map decorate-note)
-  (sort-by :published)
-  (into []))
-
 ;; ### recently modified (unpublished only)
 
-^{::clerk/viewer note-publish-buttons
-  ::clerk/width  :wide}
+^{::clerk/viewer   note-publish-buttons
+  ::clerk/width    :wide
+  ::clerk/no-cache true}
 (->>
-  recent-unpublished-notes
+  (calc-recent-unpublished-notes)
+  (take 5)
   (map decorate-note)
   (into []))
 
-
-;; ### unpublished, linked items
-
-^{::clerk/viewer note-publish-buttons
-  ::clerk/width  :wide}
-(->> linked-items
-     (remove (fn [note] (notes/published-id? (:org/id note))))
-     (take 5)
-     (map decorate-note)
-     (into []))
-
-;; ### unpublished, backlinked items
-
-;; ^{::clerk/no-cache true
-;;   ::clerk/viewer   note-publish-buttons
-;;   ::clerk/width    :wide}
-;; (->> backlinked-items
-;;      (remove (fn [note] (notes/published-id? (:org/id note))))
-;;      (take 5)
-;;      (map decorate-note)
-;;      (into []))
-
+(clerk/table
+  {:short-path (->> @skipped-notes seq)})
 
 ;; ### frequent tags
 (clerk/vl
@@ -424,24 +362,3 @@
    :encoding    {:theta {:field "value" :type "quantitative" :stack "normalize"}
                  :color {:field "category" :type "nominal"}}})
 
-
-;; ### published items
-;; ^{::clerk/no-cache true}
-;; (clerk/table
-;;   {::clerk/width :full}
-;;   (or
-;;     (->> published-notes
-;;          (map select-org-keys)
-;;          seq)
-;;     [{:no-data nil}]))
-
-;; ;; ### unpublished, linked items
-;; ^{::clerk/no-cache true}
-;; (clerk/table
-;;   {::clerk/width :full}
-;;   (or
-;;     (->> linked-items
-;;          (remove (fn [{:keys [org/id]}] (notes/published-id? id)))
-;;          (map select-org-keys)
-;;          seq)
-;;     [{:no-data nil}]))
