@@ -79,6 +79,16 @@
                      [:h3 repo])))
             (into [:div {:class "pl-4"}]))]
 
+   [:div
+    [:h3 "Posts"]
+    (->> (notes/published-notes)
+         (filter (comp seq
+                       #(set/intersection
+                          #{"post" "posts"} %)
+                       :org/tags))
+         (map item/note-row)
+         (into [:div {:class "pl-4"}]))]
+
    [:hr]
    [:div
     [:h3 "Recently modified"]
