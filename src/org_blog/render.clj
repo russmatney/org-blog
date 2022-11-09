@@ -61,7 +61,7 @@
        [:a {:class ["font-mono"
                     "hover:underline"
                     "cursor-pointer"]
-            :href  "/index.html"} "all"]]]
+            :href  "/index.html"} "home"]]]
      [:div
       [:h4
        [:a {:class ["font-mono"
@@ -69,6 +69,36 @@
                     "cursor-pointer"]
             :href  about-link-uri} "about"]]]]]
    [:hr]])
+
+(defn footer []
+  (let [mastodon-href (config/get-mastodon-href)]
+    [:div
+     {:class ["flex" "flex-col" "items-center" "text-gray-900" "dark:text-white"]}
+
+     [:hr]
+     [:div
+      {:class ["flex" "flex-row" "space-x-4"]}
+      [:div
+       [:h4
+        [:a {:class ["font-mono"
+                     "hover:underline"
+                     "cursor-pointer"]
+             :href  "/index.html"} "home"]]]
+      [:div
+       [:h4
+        [:a {:class ["font-mono"
+                     "hover:underline"
+                     "cursor-pointer"]
+             :href  about-link-uri} "about"]]]
+
+      (when mastodon-href
+        [:div
+         [:h4
+          [:a {:class ["font-mono"
+                       "hover:underline"
+                       "cursor-pointer"]
+               :href  about-link-uri
+               :rel   "me"} "mastodon"]]])]]))
 
 (defn ->html [{:keys [conn-ws?] :or {conn-ws? true}} state]
   (hiccup.page/html5
@@ -157,7 +187,8 @@ gtag('config', '" ga-id "');"))])]
           [:div.flex.flex-col.items-center.flex-auto
            [:div
             {:class ["w-full" "max-w-prose" "px-8" "viewer-notebook"]}
-            content]]]]]])))
+            content
+            (footer)]]]]]])))
 
 (defn write-page [{:keys [path title content]}]
   (ensure-path path)

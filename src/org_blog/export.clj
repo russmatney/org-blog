@@ -46,6 +46,7 @@ This supports the don't-publish-now use-case.
 
 (def published-notes (notes/published-notes))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #_ actions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -339,7 +340,7 @@ This supports the don't-publish-now use-case.
   (into []))
 
 (clerk/table
-  {:short-path (->> @skipped-notes seq)})
+  {:short-path (->> @skipped-notes seq (into []))})
 
 ;; ### frequent tags
 (clerk/vl

@@ -7,7 +7,8 @@
    [org-blog.db :as db]
    [org-blog.uri :as uri]
    [org-blog.render :as render]
-   [org-blog.config :as config]))
+   [org-blog.config :as config]
+   [org-blog.export :as export]))
 
 ^{::clerk/no-cache true}
 (def ^:dynamic *note*
@@ -28,8 +29,27 @@
      :content (page *note*)
      :title   (:org/name *note*)}))
 
+(defn linked-to [note]
+  (let [links       (item/item->all-links note)
+        notes-by-id (db/notes-by-id)]
+    (->> links
+         (map :link/id)
+         (map notes-by-id))))
+
+(comment
+  *note*)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}
+
+^{::clerk/viewer   export/note-publish-buttons
+  ::clerk/width    :wide
+  ::clerk/no-cache true}
+(->>
+  (concat
+    [*note*]
+    (linked-to *note*))
+  (map export/decorate-note))
 
 ^{::clerk/no-cache true}
 (clerk/html (page *note*))
