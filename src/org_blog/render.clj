@@ -97,7 +97,7 @@
           [:a {:class ["font-mono"
                        "hover:underline"
                        "cursor-pointer"]
-               :href  about-link-uri
+               :href  mastodon-href
                :rel   "me"} "mastodon"]]])]]))
 
 (defn ->html [{:keys [conn-ws?] :or {conn-ws? true}} state]
