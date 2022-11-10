@@ -15,5 +15,6 @@
                            :git/tag "v0.3.11"
                            :git/sha "ff4085c"}
 
+         djblue/portal              {:mvn/version "0.33.0"}
          com.kiranshila/cybermonday {:mvn/version "0.4.184"}}
  :aliases {}}

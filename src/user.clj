@@ -7,7 +7,8 @@
    [clojure.string :as string]
    [org-blog.watcher :as watcher]
    [systemic.core :as sys]
-   [org-blog.publish :as publish]))
+   [org-blog.publish :as publish]
+   [portal.api :as p]))
 
 (comment
   ;; TODO consider running this after clawe's suggested neil dep add
@@ -36,7 +37,14 @@
         (string/replace (fs/file-name *file*) "org_blog/daily.clj")
         (doto (println "is clerk-show!ing"))))
 
-
   (publish/publish-all)
+
+  (def p (p/open {:theme :portal.colors/nord}))
+  (add-tap #'p/submit)
+
+  (tap> :hellooooo)
+  @p
+
+  (p/close)
 
   )
