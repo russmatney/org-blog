@@ -8,7 +8,8 @@
    [org-blog.watcher :as watcher]
    [systemic.core :as sys]
    [org-blog.publish :as publish]
-   [portal.api :as p]))
+   [portal.api :as p]
+   [flames.core :as flames]))
 
 (comment
   ;; TODO consider running this after clawe's suggested neil dep add
@@ -47,4 +48,8 @@
 
   (p/close)
 
+  (def f (flames/start! {:port 5555 :host "localhost"}))
+  (flames/stop! f)
+
+  (Thread/sleep 1000)
   )

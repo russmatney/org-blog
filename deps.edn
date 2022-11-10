@@ -16,5 +16,7 @@
                            :git/sha "ff4085c"}
 
          djblue/portal              {:mvn/version "0.33.0"}
-         com.kiranshila/cybermonday {:mvn/version "0.4.184"}}
+         com.kiranshila/cybermonday {:mvn/version "0.4.184"}
+         flames/flames              {:mvn/version "0.4.0"}
+         clj-time/clj-time          {:mvn/version "0.15.2"}}
  :aliases {}}
