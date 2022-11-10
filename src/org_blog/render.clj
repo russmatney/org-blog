@@ -171,6 +171,10 @@ ws.onopen = () => ws.send('{:path \"' + document.location.pathname + '\"}'); ")]
                 :href "https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Fira+Mono:wght@400;700&family=Fira+Sans+Condensed:ital,wght@0,700;1,700&family=Fira+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap"
                 :rel  "stylesheet"}]
 
+        (when true ;; TODO support 'production' build to prevent livejs inclusion?
+          [:script {:type "text/javascript"
+                    :src  "https://livejs.com/live.js"}])
+
         (when ga-id
           [:script {:async true :src (str "https://www.googletagmanager.com/gtag/js?id=" ga-id)}])
         (when ga-id

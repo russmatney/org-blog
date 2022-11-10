@@ -86,7 +86,6 @@
   (println "Starting *org-watcher*")
   (dirwatch/watch-dir
     (fn [event]
-      (println (:action event) "event" event)
       (when (and (not (#{:delete} (:action event)))
                  (should-sync-file? (:file event)))
         (println "[WATCH]: org file changed:" (fs/file-name (:file event)))
@@ -114,6 +113,7 @@
   (debounce
     (fn [_event]
       (println "[WATCH]: reloading export browser tabs")
+      ;; not necessary with livejs
       (browser/reload-tabs {:url-match "localhost:9999"}))
     1000))
 
@@ -122,10 +122,11 @@
   (println "Starting *export-watcher*")
   (dirwatch/watch-dir
     (fn [event]
-      (println (:action event) "event" event)
       (when (not (#{:delete} (:action event)))
         (println "[WATCH]: export file changed:" (fs/file-name (:file event)))
-        (on-export-file-change event)))
+        ;; (on-export-file-change event)
+        )
+      )
     (export-dir-path))
 
   :stop
