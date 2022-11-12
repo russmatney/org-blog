@@ -47,7 +47,7 @@
 (defn header []
   [:div
    {:class ["flex" "flex-col" "items-center"
-            "text-gray-900" "dark:text-white"]}
+            "text-gray-900" "dark:text-white" "w-full"]}
    [:div
     {:class ["flex" "flex-row"
              "items-center"
@@ -73,7 +73,9 @@
 (defn footer []
   (let [mastodon-href (config/get-mastodon-href)]
     [:div
-     {:class ["flex" "flex-col" "items-center" "text-gray-900" "dark:text-white"]}
+     {:class ["flex" "flex-col" "items-center"
+              "text-gray-900"
+              "dark:text-white" "pb-8"]}
 
      [:hr]
      [:div
@@ -154,8 +156,7 @@ ws.onopen = () => ws.send('{:path \"' + document.location.pathname + '\"}'); ")]
     (hiccup2.core/html
       {:mode :html}
       (hiccup.page/doctype :html5)
-      [:html
-       {:class "overflow-hidden min-h-screen dark"}
+      [:html.dark
        [:head
         [:title title]
         [:meta {:charset "UTF-8"}]
@@ -164,9 +165,6 @@ ws.onopen = () => ws.send('{:path \"' + document.location.pathname + '\"}'); ")]
         [:link {:type "text/css" :rel "stylesheet" :href "/styles.css"}]
         [:script {:type "text/javascript"
                   :src  "https://storage.googleapis.com/nextjournal-cas-eu/assets/28ktYzexRpt9ZsXvxpxDRnu497pkEeZjEvXB1NMVzfEoPEgsbQXEyM3j5CEucNccte6QGnX1qQxHL2KHfoBRG2FN-viewer.js"}]
-        [:link {:type "text/css"
-                :href "https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css"
-                :rel  "stylesheet"}]
         [:link {:type "text/css"
                 :href "https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Fira+Mono:wght@400;700&family=Fira+Sans+Condensed:ital,wght@0,700;1,700&family=Fira+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap"
                 :rel  "stylesheet"}]
@@ -184,15 +182,14 @@ ws.onopen = () => ws.send('{:path \"' + document.location.pathname + '\"}'); ")]
 function gtag() { dataLayer.push(arguments); }
 gtag('js', new Date());
 gtag('config', '" ga-id "');"))])]
-       [:body.dark:bg-gray-900
-        (header)
-        [:div.flex
-         [:div.flex-auto.h-screen.overflow-y-auto
-          [:div.flex.flex-col.items-center.flex-auto
-           [:div
-            {:class ["w-full" "max-w-prose" "px-8" "viewer-notebook"]}
-            content
-            (footer)]]]]]])))
+       [:body
+        {:class ["dark:bg-gray-900"]}
+        [:div.flex.flex-col.items-center
+         (header)
+         [:div
+          {:class ["w-full" "max-w-prose" "px-8" "viewer-notebook"]}
+          content]
+         (footer)]]])))
 
 (defn write-page [{:keys [path title content]}]
   (ensure-path path)
