@@ -83,3 +83,7 @@
 
 (comment
   (publish-all))
+
+(defn -main []
+  (publish-all)
+  (System/exit 0))

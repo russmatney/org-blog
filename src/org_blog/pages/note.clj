@@ -20,6 +20,8 @@
 
 (defn page [note]
   [:div
+   ;; TODO show metadata
+   ;; TODO last modified
    (item/item->hiccup-content note)
    (item/id->backlink-hiccup (:org/id *note*))])
 

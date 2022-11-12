@@ -17,14 +17,18 @@
   ;; from the one-off babashka process, that is
   (repl/sync-libs!))
 
-;; go ahead and start this whenever the repl starts up
-(clerk/serve! {:port 8888})
-;; note that clerk/serve! clients do not reconnect, so evaling this breaks the sockets
-(notify/notify "started clerk server on port 8888")
+(defn dev []
+  ;; go ahead and start this whenever the repl starts up
+  (clerk/serve! {:port 8888})
+  ;; note that clerk/serve! clients do not reconnect, so evaling this breaks the sockets
+  (notify/notify "started clerk server on port 8888")
 
-(sys/start! `watcher/*org-watcher*)
-(sys/start! `watcher/*export-watcher*)
-(notify/notify "started org and export watchers")
+  (sys/start! `watcher/*org-watcher*)
+  (sys/start! `watcher/*export-watcher*)
+  (notify/notify "started org and export watchers"))
+
+(comment
+  (dev))
 
 ;; maybe this works
 #_(clerk/show!

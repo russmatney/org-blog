@@ -19,4 +19,5 @@
          com.kiranshila/cybermonday {:mvn/version "0.4.184"}
          flames/flames              {:mvn/version "0.4.0"}
          clj-time/clj-time          {:mvn/version "0.15.2"}}
- :aliases {}}
+ :aliases
+ {:publish-all {:main-opts ["-m" "org-blog.publish"]}}}
