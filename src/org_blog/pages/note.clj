@@ -8,8 +8,7 @@
    [org-blog.uri :as uri]
    [org-blog.render :as render]
    [org-blog.config :as config]
-   [org-blog.export :as export]
-   [flames.core :as flames]))
+   [org-blog.export :as export]))
 
 ^{::clerk/no-cache true}
 (def ^:dynamic *note*
@@ -40,13 +39,7 @@
          (map :link/id)
          (map notes-by-id))))
 
-(comment
-  *note*
-
-  (let [f (flames/start! {:port 5555 :host "localhost"})]
-    (clerk/show! 'org-blog.pages.note)
-    (spit "flames.svg" (slurp "http://localhost:5555/flames.svg"))
-    (flames/stop! f)))
+(comment *note*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 {::clerk/visibility {:result :show}}

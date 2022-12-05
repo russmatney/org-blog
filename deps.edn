@@ -3,6 +3,8 @@
          russmatney/org-crud {:local/root "../org-crud"}
          russmatney/clawe    {:local/root "../clawe"}
 
+         tick/tick {:mvn/version "0.5.0-RC5"}
+
          io.github.nextjournal/clerk {:mvn/version "0.11.603"}
          teknql/systemic             {:mvn/version "0.2.1"}
          aero/aero                   {:mvn/version "1.1.6"}
@@ -16,8 +18,6 @@
                            :git/sha "ff4085c"}
 
          djblue/portal              {:mvn/version "0.33.0"}
-         com.kiranshila/cybermonday {:mvn/version "0.4.184"}
-         flames/flames              {:mvn/version "0.4.0"}
-         clj-time/clj-time          {:mvn/version "0.15.2"}}
+         com.kiranshila/cybermonday {:mvn/version "0.4.184"}}
  :aliases
  {:publish-all {:main-opts ["-m" "org-blog.publish"]}}}
