@@ -13,7 +13,7 @@
 
 (declare build-db)
 
-(sys/defsys *notes-db*
+(sys/defsys ^:dynamic *notes-db*
   :start
   (println "[DB]: *notes-db* (re)started")
   (atom (build-db)))
@@ -74,8 +74,8 @@
   (root-note-for-any-id (ensure-uuid id)))
 
 (comment
-  (count all-notes)
-  (count notes-by-id))
+  (count (all-notes))
+  (count (notes-by-id)))
 
 (defn root-ids-by-link-id []
   (->>
@@ -91,9 +91,8 @@
                                ;; maybe want to require ids for items with links
                                (some-> item :org/parent-ids first))]
           (if-not item-id
-            (do
-              #_(println "[WARN] no id/parent-id for link" item)
-              agg)
+            #_(println "[WARN] no id/parent-id for link" item)
+            agg
             (let [link-ids (->> item :org/links-to (map :link/id))]
               (reduce (fn [agg link-id]
                         (if (get agg link-id)
