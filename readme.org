@@ -1,11 +1,18 @@
 #+title: Org Blog
 
+NOTE: I've refactored and absorbed this repo into [[https://github.com/russmatney/clawe][Clawe]], my dev-tools monorepo.
+
+I'll leave the repo as-is as a reference, as the implementation is roughly the
+same.
+
+---
+
 Hopefully the last time I overengineer my blog.
 
 I was curious if I could combine the clerk devloop with a blog based on an
 org-roam mind-garden - this repo is that experiment!
 
-You can see the current state of it here: https://danger.russmatney.com/
+You can see the current state of it here: https://russmatney.com/
 
 - A static blog generator written in clojure
 - Pulls content primarily from an org ([[https://github.com/org-roam/org-roam][org-roam]]) directory
